@@ -1,0 +1,86 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Base resources reference
+resources:
+- ../../base
+
+# Target namespace for staging environment
+namespace: whatsapp-web-enhancement-staging
+
+# Common labels for all resources
+commonLabels:
+  environment: staging
+  managed-by: kustomize
+  version: staging
+  app: whatsapp-web-enhancement
+
+# Common annotations for all resources
+commonAnnotations:
+  environment.type: staging
+  contact.team: devops
+  deployment.strategy: rolling-update
+  monitoring.enabled: "true"
+  logging.level: debug
+
+# Image transformations for staging environment
+images:
+- name: analytics-service
+  newName: registry.staging.local/analytics-service
+  newTag: staging
+- name: message-service
+  newName: registry.staging.local/message-service
+  newTag: staging
+- name: template-service
+  newName: registry.staging.local/template-service
+  newTag: staging
+- name: contact-service
+  newName: registry.staging.local/contact-service
+  newTag: staging
+- name: api-gateway
+  newName: registry.staging.local/api-gateway
+  newTag: staging
+- name: web
+  newName: registry.staging.local/web
+  newTag: staging
+
+# Replica count for staging environment (single replica for testing)
+replicas:
+- name: analytics-service
+  count: 1
+- name: message-service
+  count: 1
+- name: template-service
+  count: 1
+- name: contact-service
+  count: 1
+- name: api-gateway
+  count: 1
+- name: web
+  count: 1
+
+# ConfigMap generators for staging environment
+configMapGenerator:
+- name: staging-config
+  behavior: merge
+  literals:
+  - ENVIRONMENT=staging
+  - LOG_LEVEL=debug
+  - METRICS_ENABLED=true
+  - TRACING_ENABLED=true
+  - MONITORING_ENDPOINT=http://monitoring.staging.local
+
+- name: service-config
+  behavior: merge
+  literals:
+  - MAX_CONNECTIONS=100
+  - TIMEOUT_SECONDS=30
+  - RETRY_ATTEMPTS=3
+  - CACHE_TTL=300
+
+# Strategic merge patches for staging customizations
+patchesStrategicMerge:
+- patches/resource-limits.yaml    # Container resource limits and requests
+- patches/liveness-probes.yaml    # Health check configurations
+- patches/monitoring-config.yaml  # Monitoring and metrics settings
+- patches/deployment-strategy.yaml # Rolling update strategy configuration
