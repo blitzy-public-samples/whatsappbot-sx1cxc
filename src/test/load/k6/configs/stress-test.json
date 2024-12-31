@@ -1,0 +1,126 @@
+{
+  "scenarios": {
+    "message_stress": {
+      "executor": "ramping-vus",
+      "startVUs": 0,
+      "stages": [
+        {
+          "duration": "2m",
+          "target": 500
+        },
+        {
+          "duration": "5m",
+          "target": 1000
+        },
+        {
+          "duration": "2m",
+          "target": 0
+        }
+      ],
+      "gracefulRampDown": "30s",
+      "exec": "messageStressScenario",
+      "env": {
+        "MAX_MESSAGES_PER_MINUTE": "100",
+        "MESSAGE_ENDPOINT": "/api/v1/messages"
+      }
+    },
+    "contact_stress": {
+      "executor": "constant-vus",
+      "vus": 1000,
+      "duration": "10m",
+      "exec": "contactStressScenario",
+      "env": {
+        "MAX_CONTACTS_PER_MINUTE": "1000",
+        "CONTACT_ENDPOINT": "/api/v1/contacts"
+      }
+    },
+    "template_stress": {
+      "executor": "per-vu-iterations",
+      "vus": 500,
+      "iterations": 100,
+      "maxDuration": "5m",
+      "exec": "templateStressScenario",
+      "env": {
+        "TEMPLATE_ENDPOINT": "/api/v1/templates",
+        "MAX_TEMPLATE_SIZE": "64000"
+      }
+    }
+  },
+  "thresholds": {
+    "http_req_duration": [
+      {
+        "threshold": "p(95)<2000",
+        "abortOnFail": true
+      },
+      {
+        "threshold": "p(99)<5000",
+        "abortOnFail": false
+      }
+    ],
+    "http_req_failed": [
+      {
+        "threshold": "rate<0.01",
+        "abortOnFail": true
+      }
+    ],
+    "iteration_duration": [
+      {
+        "threshold": "p(95)<3000",
+        "abortOnFail": false
+      }
+    ],
+    "vus": [
+      {
+        "threshold": "value<1000",
+        "abortOnFail": true
+      }
+    ]
+  },
+  "metrics": {
+    "http_req_duration": {
+      "type": "trend",
+      "contains": "time",
+      "thresholds": {
+        "p95": 2000,
+        "p99": 5000
+      }
+    },
+    "http_req_failed": {
+      "type": "rate",
+      "thresholds": {
+        "max": 0.01
+      }
+    },
+    "iteration_duration": {
+      "type": "trend",
+      "contains": "time",
+      "thresholds": {
+        "p95": 3000
+      }
+    },
+    "vus": {
+      "type": "gauge",
+      "contains": "default"
+    }
+  },
+  "options": {
+    "noConnectionReuse": false,
+    "userAgent": "WhatsAppWebEnhancement/StressTest/1.0",
+    "maxRedirects": 4,
+    "timeout": "30s",
+    "dns": {
+      "ttl": "1m",
+      "select": "first",
+      "policy": "preferIPv4"
+    },
+    "batch": {
+      "maxBatchSize": 100,
+      "timeout": "10s"
+    }
+  },
+  "tags": {
+    "testType": "stress",
+    "application": "whatsapp-web-enhancement",
+    "environment": "test"
+  }
+}
