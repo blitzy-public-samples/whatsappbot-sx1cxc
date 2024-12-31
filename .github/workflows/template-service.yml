@@ -1,0 +1,189 @@
+name: Template Service CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/backend/template-service/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/backend/template-service/**'
+
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  deployments: write
+  security-events: write
+
+env:
+  DOCKER_REGISTRY: ${{ secrets.AWS_ECR_REGISTRY }}
+  IMAGE_NAME: template-service
+  IMAGE_TAG: ${{ github.sha }}
+  NODE_ENV: production
+  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+  TRIVY_SEVERITY: HIGH,CRITICAL
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: src/backend/template-service
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: src/backend/template-service/package-lock.json
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            src/backend/template-service/node_modules
+            src/backend/template-service/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('src/backend/template-service/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint
+        
+      - name: Run unit tests with coverage
+        run: npm run test:coverage
+        
+      - name: Run security scan
+        uses: snyk/actions/node@v3
+        with:
+          args: --severity-threshold=high
+        env:
+          SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
+
+      - name: Build TypeScript code
+        run: npm run build
+
+      - name: Cache build artifacts
+        uses: actions/cache@v3
+        with:
+          path: src/backend/template-service/dist
+          key: ${{ runner.os }}-build-${{ github.sha }}
+
+  build-and-push-image:
+    name: Build and Push Docker Image
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+        id: ecr-login
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          buildkitd-flags: --debug
+
+      - name: Build and push Docker image
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max \
+            --file src/backend/template-service/Dockerfile \
+            --tag ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
+            --tag ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
+            --push \
+            src/backend/template-service
+
+      - name: Scan container image
+        uses: aquasecurity/trivy-action@v1
+        with:
+          image-ref: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: ${{ env.TRIVY_SEVERITY }}
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  deploy:
+    name: Deploy to Production
+    needs: build-and-push-image
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://api.whatsapp-web-enhancement.com/templates
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ secrets.AWS_REGION }}
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl set image deployment/template-service \
+            template-service=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
+            -n production
+
+      - name: Verify deployment
+        run: |
+          kubectl rollout status deployment/template-service -n production --timeout=300s
+
+      - name: Run health checks
+        run: |
+          ENDPOINT="https://api.whatsapp-web-enhancement.com/templates/health"
+          for i in {1..30}; do
+            response=$(curl -s -o /dev/null -w "%{http_code}" $ENDPOINT)
+            if [ $response -eq 200 ]; then
+              echo "Health check passed"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Health check failed"
+          exit 1
+
+      - name: Create deployment status
+        if: always()
+        uses: actions/create-deployment-status@v1
+        with:
+          state: ${{ job.status }}
+          environment_url: https://api.whatsapp-web-enhancement.com/templates
+          deployment_id: ${{ github.event.deployment.id }}
+          description: Template Service deployment ${{ job.status }}
