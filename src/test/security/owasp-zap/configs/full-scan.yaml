@@ -1,0 +1,170 @@
+# OWASP ZAP Full Security Scan Configuration
+# Version: 2.12.0
+# Purpose: Comprehensive security scanning configuration for WhatsApp Web Enhancement Application
+# Compliance: SOC 2 and PCI DSS requirements
+
+env:
+  # Environment configuration for the full security scan
+  ZAP_API_KEY: ${ZAP_API_KEY}  # Required for ZAP API authentication
+  TARGET_URL: ${TARGET_URL}     # Target application URL
+  REPORT_PATH: ${REPORT_PATH}   # Report output location
+  ALERT_THRESHOLD: "High"       # Minimum alert level to report
+  SCAN_DURATION: "120m"         # Maximum scan duration
+  CONCURRENT_SCANNERS: 10       # Number of parallel scanning threads
+
+scan_rules:
+  # Core scanning configuration
+  max_duration: "120m"
+  max_depth: 10
+  max_children: 1000
+  excluded_urls:
+    - "/api/health"
+    - "/api/metrics"
+    - "/api/v1/analytics/raw"
+  include_active_scan: true
+  include_spider: true
+  spider_subtree_only: false
+  scan_headers: true
+  scan_response_body: true
+  scan_websockets: true
+  recursive_scan: true
+  process_forms: true
+  handle_parameters: true
+  handle_anti_csrf_tokens: true
+
+alerts:
+  # Alert thresholds and failure conditions
+  high_risk: "fail"
+  medium_risk: "fail"
+  low_risk: "warn"
+  info_risk: "ignore"
+  max_high: 0
+  max_medium: 0
+  max_low: 10
+  fail_on_high: true
+  fail_on_medium: true
+  fail_on_low: false
+
+authentication:
+  # Authentication configuration for protected endpoints
+  login_url: "/api/v1/auth/login"
+  username_field: "email"
+  password_field: "password"
+  auth_header: "Authorization"
+  token_type: "Bearer"
+  verify_login: true
+  session_management: true
+  handle_logout: true
+  test_logged_in_state: true
+  test_logged_out_state: true
+  test_session_handling: true
+  test_token_refresh: true
+
+attack_vectors:
+  # Comprehensive security test configurations
+  xss:
+    enabled: true
+    policy: "high"
+    test_stored: true
+    test_reflected: true
+    test_dom: true
+    scripts:
+      - "../scripts/xss-tests.js#reflectedXssTests"
+      - "../scripts/xss-tests.js#storedXssTests"
+      - "../scripts/xss-tests.js#domXssTests"
+
+  sql_injection:
+    enabled: true
+    policy: "high"
+    test_error_based: true
+    test_blind: true
+    test_time_based: true
+    scripts:
+      - "../scripts/injection-tests.js#sqlInjectionTests"
+
+  nosql_injection:
+    enabled: true
+    policy: "high"
+    scripts:
+      - "../scripts/injection-tests.js#nosqlInjectionTests"
+
+  csrf:
+    enabled: true
+    policy: "high"
+
+  command_injection:
+    enabled: true
+    policy: "high"
+    scripts:
+      - "../scripts/injection-tests.js#commandInjectionTests"
+
+  file_inclusion:
+    enabled: true
+    policy: "high"
+
+  insecure_headers:
+    enabled: true
+    policy: "high"
+
+  authentication_tests:
+    enabled: true
+    policy: "high"
+    scripts:
+      - "../scripts/auth-attacks.js#authenticationTests"
+      - "../scripts/auth-attacks.js#bruteForceTests"
+
+reporting:
+  # Comprehensive reporting configuration
+  format:
+    - "html"
+    - "json"
+    - "xml"
+    - "pdf"
+  include_debug: true
+  summary_only: false
+  include_screenshots: true
+  include_scan_config: true
+  include_request_response: true
+  risk_level_filter: "all"
+  template: "detailed"
+  output_path: "${REPORT_PATH}/full-scan-report"
+  separate_reports: true
+  include_remediation: true
+
+# Performance tuning
+performance:
+  thread_count: ${CONCURRENT_SCANNERS}
+  request_delay: 50
+  response_timeout: 60000
+  max_results_per_rule: 1000
+  memory_limit: "4G"
+
+# Compliance specific configurations
+compliance:
+  soc2:
+    enabled: true
+    evidence_collection: true
+    control_mapping: true
+    
+  pci_dss:
+    enabled: true
+    requirement_6_6: true
+    requirement_11_3: true
+    evidence_collection: true
+
+# Advanced scan configurations
+advanced:
+  follow_redirects: true
+  handle_oauth: true
+  verify_ssl: true
+  proxy_config:
+    enabled: false
+    host: ""
+    port: 8080
+  rate_limiting:
+    enabled: true
+    requests_per_second: 50
+  retry:
+    enabled: true
+    max_attempts: 3
+    backoff: "exponential"
