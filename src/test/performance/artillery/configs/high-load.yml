@@ -1,0 +1,118 @@
+# Artillery high-load performance test configuration
+# Dependencies:
+# - artillery-plugin-expect: ^2.0.0
+# - artillery-plugin-metrics-by-endpoint: ^1.0.0
+
+config:
+  target: "http://api-gateway:8080"
+  plugins:
+    expect: {}
+    metrics-by-endpoint:
+      showResponseCodes: true
+      requestLatencyDistribution: true
+      detailedMetrics: true
+      customMetrics: true
+
+  phases:
+    # Initial warm-up phase to stabilize the system
+    - name: "Warm up"
+      duration: 300
+      arrivalRate: 10
+      rampTo: 50
+
+    # Gradual ramp up to test scalability
+    - name: "Ramp up load"
+      duration: 600
+      arrivalRate: 50
+      rampTo: 200
+
+    # Sustained peak load to validate system stability
+    - name: "Peak load"
+      duration: 1800
+      arrivalRate: 200
+
+    # Controlled ramp down
+    - name: "Cool down"
+      duration: 300
+      arrivalRate: 200
+      rampTo: 10
+
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+    timeout: 10000
+
+  # Performance thresholds based on technical specifications
+  ensure:
+    thresholds:
+      - "http.response_time.p95": 2000    # 95th percentile response time < 2s
+      - "http.requests.rate": 100         # Minimum 100 requests/second
+      - "errors.rate": 0.01              # Error rate < 1%
+      - "vusers.session_length.p95": 5000 # Session length < 5s
+
+before:
+  flow:
+    - function: "setupTestData"
+      log: "Initializing test data and resources"
+    - function: "setupMetricsCollectors"
+      log: "Configuring metrics collection"
+
+after:
+  flow:
+    - function: "exportMetrics"
+      log: "Exporting performance metrics"
+    - function: "cleanupTestData"
+      log: "Cleaning up test resources"
+
+scenarios:
+  - name: "High load mixed operations"
+    weight: 100
+    flow:
+      # Import bulk messaging scenario
+      - flow:
+          - import: "../scenarios/bulk-messaging.yml"
+            as: "bulk_messaging_scenario"
+      
+      # Import contact sync scenario
+      - flow:
+          - import: "../scenarios/contact-sync.yml"
+            as: "contact_sync_scenario"
+      
+      # Import template processing scenario
+      - flow:
+          - import: "../scenarios/template-processing.yml"
+            as: "template_processing_scenario"
+
+reporting:
+  - type: "json"
+    output: "./reports/high-load-report.json"
+  - type: "prometheus"
+    endpoint: "/metrics"
+    labels:
+      test_type: "high_load"
+      environment: "{{ $environment }}"
+
+metrics:
+  - name: "message_delivery_rate"
+    type: "counter"
+    threshold: "rate > 0.99"
+  - name: "response_time_p95"
+    type: "histogram"
+    threshold: "p95 < 2000"
+  - name: "error_rate"
+    type: "counter"
+    threshold: "rate < 0.01"
+  - name: "concurrent_users"
+    type: "gauge"
+    threshold: "value > 1000"
+
+variables:
+  maxBatchSize: 1000
+  defaultTimeout: 30000
+  retryAttempts: 3
+  retryDelay: 1000
+  environments:
+    - "development"
+    - "staging"
+    - "production"
