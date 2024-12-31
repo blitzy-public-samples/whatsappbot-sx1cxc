@@ -1,0 +1,108 @@
+/**
+ * WhatsApp Web Enhancement Application - Design System Variables
+ * Version: 1.0.0
+ * 
+ * This file defines the core design system variables and tokens following Material Design principles.
+ * It includes definitions for colors, typography, spacing, breakpoints, and other UI constants.
+ * All values are optimized for accessibility (WCAG 2.1 AA compliance) and consistent UI/UX.
+ */
+
+:root {
+  /* Color System - Primary */
+  --color-primary: #1976D2;
+  --color-primary-light: #42A5F5;
+  --color-primary-dark: #1565C0;
+
+  /* Color System - Secondary */
+  --color-secondary: #424242;
+  --color-secondary-light: #616161;
+  --color-secondary-dark: #212121;
+
+  /* Color System - Feedback States */
+  --color-error: #D32F2F;
+  --color-warning: #FFA000;
+  --color-success: #388E3C;
+  --color-info: #0288D1;
+
+  /* Color System - Background */
+  --color-background: #FFFFFF;
+  --color-background-paper: #FAFAFA;
+
+  /* Color System - Text */
+  --color-text-primary: rgba(0, 0, 0, 0.87);  /* High emphasis text */
+  --color-text-secondary: rgba(0, 0, 0, 0.60); /* Medium emphasis text */
+  --color-text-disabled: rgba(0, 0, 0, 0.38);  /* Disabled text */
+
+  /* Typography - Font Family */
+  --font-family-primary: Roboto, sans-serif;
+
+  /* Typography - Font Sizes */
+  --font-size-h1: 2.5rem;    /* 40px */
+  --font-size-h2: 2rem;      /* 32px */
+  --font-size-h3: 1.75rem;   /* 28px */
+  --font-size-h4: 1.5rem;    /* 24px */
+  --font-size-body1: 1rem;   /* 16px */
+  --font-size-body2: 0.875rem; /* 14px */
+  --font-size-caption: 0.75rem; /* 12px */
+
+  /* Typography - Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  /* Spacing System - Based on 8px grid */
+  --spacing-unit: 8px;
+  --spacing-xs: calc(var(--spacing-unit) * 0.5); /* 4px */
+  --spacing-sm: var(--spacing-unit);             /* 8px */
+  --spacing-md: calc(var(--spacing-unit) * 2);   /* 16px */
+  --spacing-lg: calc(var(--spacing-unit) * 3);   /* 24px */
+  --spacing-xl: calc(var(--spacing-unit) * 4);   /* 32px */
+
+  /* Breakpoints - Mobile First */
+  --breakpoint-xs: 0px;      /* Extra small devices */
+  --breakpoint-sm: 600px;    /* Small devices (tablets) */
+  --breakpoint-md: 960px;    /* Medium devices (landscape tablets) */
+  --breakpoint-lg: 1280px;   /* Large devices (laptops/desktops) */
+  --breakpoint-xl: 1920px;   /* Extra large devices (large desktops) */
+
+  /* Layout */
+  --border-radius: 4px;
+  --container-max-width: 1200px;
+  --container-padding: var(--spacing-md);
+
+  /* Elevation - Box Shadows */
+  --elevation-1: 0 2px 1px -1px rgba(0,0,0,0.2),
+                 0 1px 1px 0 rgba(0,0,0,0.14),
+                 0 1px 3px 0 rgba(0,0,0,0.12);
+  --elevation-2: 0 3px 3px -2px rgba(0,0,0,0.2),
+                 0 3px 4px 0 rgba(0,0,0,0.14),
+                 0 1px 8px 0 rgba(0,0,0,0.12);
+  --elevation-3: 0 6px 6px -3px rgba(0,0,0,0.2),
+                 0 10px 14px 1px rgba(0,0,0,0.14),
+                 0 4px 18px 3px rgba(0,0,0,0.12);
+
+  /* Animation */
+  --transition-duration: 200ms;
+  --transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark Mode Theme Variables - For future implementation */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark theme variables will be defined here */
+  }
+}
+
+/* High Contrast Mode - For accessibility */
+@media (prefers-contrast: high) {
+  :root {
+    /* High contrast overrides will be defined here */
+  }
+}
+
+/* Print Mode */
+@media print {
+  :root {
+    /* Print-specific variables will be defined here */
+  }
+}
