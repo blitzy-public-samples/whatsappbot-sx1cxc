@@ -1,0 +1,149 @@
+config:
+  target: "http://api-gateway:8080"
+  processor: "./data-generator.js"
+  plugins:
+    expect: {} # artillery-plugin-expect@2.0.0
+    metrics-by-endpoint: {}
+  phases:
+    - name: "Warm up"
+      duration: 300
+      arrivalRate: 10
+      rampTo: 100
+    - name: "Sustained load"
+      duration: 1800
+      arrivalRate: 100
+    - name: "Peak load"
+      duration: 300
+      arrivalRate: 100
+      rampTo: 200
+  variables:
+    maxBatchSize: 1000
+    messageTypes: ["text", "template", "media"]
+    defaultTimeout: 30000
+    retryAttempts: 3
+    retryDelay: 1000
+  http:
+    timeout: 30
+    pool: 100
+  ensure:
+    maxErrorRate: 1
+    p95: 2000
+    p99: 5000
+
+before:
+  flow:
+    - function: "setupTestData"
+    - log: "Test data setup complete"
+
+after:
+  flow:
+    - function: "cleanupTestData"
+    - log: "Test cleanup complete"
+
+scenarios:
+  - name: "bulk_text_messages"
+    weight: 40
+    flow:
+      - function: "generateTextBatch"
+      - post:
+          url: "/api/v1/messages/batch"
+          headers:
+            Content-Type: "application/json"
+            Authorization: "Bearer {{ token }}"
+            X-Request-ID: "{{ $requestId }}"
+            X-Batch-ID: "{{ $batchId }}"
+          json:
+            messages: "{{ textBatch }}"
+            options:
+              priority: "normal"
+              scheduling: "immediate"
+              retryPolicy:
+                attempts: "{{ retryAttempts }}"
+                delay: "{{ retryDelay }}"
+                strategy: "exponential"
+          expect:
+            - statusCode: 202
+            - contentType: "application/json"
+            - hasProperty: "batch_size"
+            - hasProperty: "status"
+      - think: 1
+      - function: "validateTextBatchDelivery"
+
+  - name: "bulk_template_messages"
+    weight: 40
+    flow:
+      - function: "generateTemplateBatch"
+      - post:
+          url: "/api/v1/messages/batch"
+          headers:
+            Content-Type: "application/json"
+            Authorization: "Bearer {{ token }}"
+            X-Request-ID: "{{ $requestId }}"
+            X-Batch-ID: "{{ $batchId }}"
+          json:
+            messages: "{{ templateBatch }}"
+            options:
+              priority: "high"
+              scheduling: "immediate"
+              retryPolicy:
+                attempts: "{{ retryAttempts }}"
+                delay: "{{ retryDelay }}"
+                strategy: "exponential"
+          expect:
+            - statusCode: 202
+            - contentType: "application/json"
+            - hasProperty: "batch_size"
+            - hasProperty: "status"
+      - think: 1
+      - function: "validateTemplateBatchDelivery"
+
+  - name: "bulk_media_messages"
+    weight: 20
+    flow:
+      - function: "generateMediaBatch"
+      - post:
+          url: "/api/v1/messages/batch"
+          headers:
+            Content-Type: "application/json"
+            Authorization: "Bearer {{ token }}"
+            X-Request-ID: "{{ $requestId }}"
+            X-Batch-ID: "{{ $batchId }}"
+          json:
+            messages: "{{ mediaBatch }}"
+            options:
+              priority: "normal"
+              scheduling: "immediate"
+              retryPolicy:
+                attempts: "{{ retryAttempts }}"
+                delay: "{{ retryDelay }}"
+                strategy: "exponential"
+          expect:
+            - statusCode: 202
+            - contentType: "application/json"
+            - hasProperty: "batch_size"
+            - hasProperty: "status"
+      - think: 1
+      - function: "validateMediaBatchDelivery"
+
+metrics:
+  - name: "message_delivery_rate"
+    type: "counter"
+    threshold: "rate > 0.99"
+  - name: "response_time_p95"
+    type: "histogram"
+    threshold: "p95 < 2000"
+  - name: "error_rate"
+    type: "counter"
+    threshold: "rate < 0.01"
+  - name: "concurrent_users"
+    type: "gauge"
+    threshold: "value > 1000"
+
+reporting:
+  - type: "json"
+    output: "./reports/bulk-messaging-report.json"
+  - type: "prometheus"
+    endpoint: "/metrics"
+    labels:
+      test_type: "bulk_messaging"
+      environment: "{{ $environment }}"
