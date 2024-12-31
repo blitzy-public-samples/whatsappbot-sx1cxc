@@ -149,7 +149,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           
       - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
         
       - name: Build and push Docker image
         working-directory: src/web
@@ -196,7 +196,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
           
       - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
         
       - name: Promote staging image
         env:
