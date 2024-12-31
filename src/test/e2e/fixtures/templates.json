@@ -1,0 +1,285 @@
+{
+  "templates": [
+    {
+      "id": "template-001",
+      "name": "Welcome Message",
+      "content": "Hello {firstName}! Welcome to {companyName}. We're excited to have you join us.",
+      "variables": [
+        {
+          "name": "firstName",
+          "type": "text",
+          "required": true,
+          "defaultValue": null,
+          "validation": {
+            "minLength": 2,
+            "maxLength": 50
+          }
+        },
+        {
+          "name": "companyName",
+          "type": "text",
+          "required": true,
+          "defaultValue": "Our Company",
+          "validation": {
+            "minLength": 1,
+            "maxLength": 100
+          }
+        }
+      ],
+      "category": "general",
+      "language": "en",
+      "version": 1,
+      "organizationId": "org-001",
+      "createdBy": "user-001",
+      "createdAt": "2023-10-01T00:00:00Z",
+      "updatedAt": "2023-10-01T00:00:00Z",
+      "isActive": true
+    },
+    {
+      "id": "template-002",
+      "name": "Special Offer",
+      "content": "Don't miss out! Get {discountPercent}% off on all products until {endDate}. Use code: {promoCode}. Save up to {maxSavings} today!",
+      "variables": [
+        {
+          "name": "discountPercent",
+          "type": "number",
+          "required": true,
+          "defaultValue": 10,
+          "validation": {
+            "min": 5,
+            "max": 75
+          }
+        },
+        {
+          "name": "endDate",
+          "type": "date",
+          "required": true,
+          "defaultValue": null,
+          "validation": {
+            "minDate": "now"
+          }
+        },
+        {
+          "name": "promoCode",
+          "type": "text",
+          "required": true,
+          "defaultValue": null,
+          "validation": {
+            "pattern": "^[A-Z0-9]{6,12}$"
+          }
+        },
+        {
+          "name": "maxSavings",
+          "type": "currency",
+          "required": true,
+          "defaultValue": null,
+          "validation": {
+            "min": 0,
+            "max": 1000000
+          }
+        }
+      ],
+      "category": "marketing",
+      "language": "en",
+      "version": 2,
+      "organizationId": "org-001",
+      "createdBy": "user-002",
+      "createdAt": "2023-10-02T00:00:00Z",
+      "updatedAt": "2023-10-03T00:00:00Z",
+      "isActive": true
+    },
+    {
+      "id": "template-003",
+      "name": "Support Ticket Update",
+      "content": "Ticket #{ticketId}: Your support request has been {status}.\n\nDetails:\nPriority: {priority}\nAssigned to: {agentName}\n\n{includeResolution}{resolution}{/includeResolution}",
+      "variables": [
+        {
+          "name": "ticketId",
+          "type": "text",
+          "required": true,
+          "defaultValue": null,
+          "validation": {
+            "pattern": "^[A-Z]-[0-9]{6}$"
+          }
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "required": true,
+          "defaultValue": null,
+          "validation": {
+            "enum": ["updated", "resolved", "escalated", "pending"]
+          }
+        },
+        {
+          "name": "priority",
+          "type": "text",
+          "required": true,
+          "defaultValue": "Normal",
+          "validation": {
+            "enum": ["Low", "Normal", "High", "Critical"]
+          }
+        },
+        {
+          "name": "agentName",
+          "type": "text",
+          "required": true,
+          "defaultValue": null,
+          "validation": {
+            "minLength": 2,
+            "maxLength": 100
+          }
+        },
+        {
+          "name": "includeResolution",
+          "type": "boolean",
+          "required": true,
+          "defaultValue": false,
+          "validation": null
+        },
+        {
+          "name": "resolution",
+          "type": "text",
+          "required": false,
+          "defaultValue": "",
+          "validation": {
+            "maxLength": 1000
+          }
+        }
+      ],
+      "category": "support",
+      "language": "en",
+      "version": 1,
+      "organizationId": "org-001",
+      "createdBy": "user-003",
+      "createdAt": "2023-10-04T00:00:00Z",
+      "updatedAt": "2023-10-04T00:00:00Z",
+      "isActive": true
+    },
+    {
+      "id": "template-004",
+      "name": "Appointment Reminder",
+      "content": "Rappel de rendez-vous:\n\nBonjour {clientName},\nVotre rendez-vous est confirmé pour le {appointmentDate} à {appointmentTime}.\n\n{includeLocation}Lieu: {location}{/includeLocation}",
+      "variables": [
+        {
+          "name": "clientName",
+          "type": "text",
+          "required": true,
+          "defaultValue": null,
+          "validation": {
+            "minLength": 2,
+            "maxLength": 100
+          }
+        },
+        {
+          "name": "appointmentDate",
+          "type": "date",
+          "required": true,
+          "defaultValue": null,
+          "validation": {
+            "minDate": "now"
+          }
+        },
+        {
+          "name": "appointmentTime",
+          "type": "text",
+          "required": true,
+          "defaultValue": null,
+          "validation": {
+            "pattern": "^([0-1][0-9]|2[0-3]):[0-5][0-9]$"
+          }
+        },
+        {
+          "name": "includeLocation",
+          "type": "boolean",
+          "required": true,
+          "defaultValue": true,
+          "validation": null
+        },
+        {
+          "name": "location",
+          "type": "text",
+          "required": false,
+          "defaultValue": "",
+          "validation": {
+            "maxLength": 200
+          }
+        }
+      ],
+      "category": "notification",
+      "language": "fr",
+      "version": 1,
+      "organizationId": "org-002",
+      "createdBy": "user-004",
+      "createdAt": "2023-10-05T00:00:00Z",
+      "updatedAt": "2023-10-05T00:00:00Z",
+      "isActive": true
+    },
+    {
+      "id": "template-005",
+      "name": "Payment Confirmation",
+      "content": "Payment Confirmation\n\nAmount: {amount}\nTransaction ID: {transactionId}\nDate: {transactionDate}\n\nStatus: {status}\n\n{includeReceipt}A receipt has been sent to {emailAddress}{/includeReceipt}",
+      "variables": [
+        {
+          "name": "amount",
+          "type": "currency",
+          "required": true,
+          "defaultValue": null,
+          "validation": {
+            "min": 0.01,
+            "max": 1000000
+          }
+        },
+        {
+          "name": "transactionId",
+          "type": "text",
+          "required": true,
+          "defaultValue": null,
+          "validation": {
+            "pattern": "^TXN-[0-9A-F]{8}$"
+          }
+        },
+        {
+          "name": "transactionDate",
+          "type": "date",
+          "required": true,
+          "defaultValue": null,
+          "validation": null
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "required": true,
+          "defaultValue": "completed",
+          "validation": {
+            "enum": ["completed", "pending", "failed"]
+          }
+        },
+        {
+          "name": "includeReceipt",
+          "type": "boolean",
+          "required": true,
+          "defaultValue": true,
+          "validation": null
+        },
+        {
+          "name": "emailAddress",
+          "type": "text",
+          "required": false,
+          "defaultValue": null,
+          "validation": {
+            "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+          }
+        }
+      ],
+      "category": "notification",
+      "language": "en",
+      "version": 1,
+      "organizationId": "org-001",
+      "createdBy": "user-001",
+      "createdAt": "2023-10-06T00:00:00Z",
+      "updatedAt": "2023-10-06T00:00:00Z",
+      "isActive": true
+    }
+  ]
+}
