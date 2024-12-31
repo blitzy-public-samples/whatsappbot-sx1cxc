@@ -1,0 +1,132 @@
+# OWASP ZAP Baseline Security Scan Configuration
+# Version: 2.12.0
+# Purpose: Define security testing parameters for WhatsApp Web Enhancement Application
+
+env:
+  # Environment configuration for baseline security scan
+  ZAP_API_KEY: ${ZAP_API_KEY}  # Required for ZAP API authentication
+  TARGET_URL: ${TARGET_URL}     # Application URL to be scanned
+  REPORT_PATH: ${REPORT_PATH}   # Report output directory
+  ALERT_THRESHOLD: "High"       # Minimum severity for alerts
+  SCAN_DURATION: "30m"          # Maximum scan duration
+
+scan_rules:
+  # Core scanning configuration
+  max_duration: "30m"           # Maximum scan duration
+  max_depth: 5                  # Maximum crawl depth
+  max_children: 500             # Maximum number of child nodes
+  excluded_urls:                # URLs to exclude from scanning
+    - "/api/health"            # Health check endpoint
+    - "/api/metrics"           # Metrics endpoint
+    - "/api/v1/auth/refresh"   # Token refresh endpoint
+  include_active_scan: false    # Disable active scanning for baseline
+  include_spider: true         # Enable spider/crawler
+  spider_subtree_only: true    # Limit spider to subtree
+  scan_headers: true           # Enable header scanning
+  scan_response_body: false    # Disable response body scanning for performance
+
+alerts:
+  # Alert threshold configuration
+  high_risk: "fail"            # Fail on high-risk findings
+  medium_risk: "warn"          # Warn on medium-risk findings
+  low_risk: "ignore"           # Ignore low-risk findings
+  max_high: 0                  # Maximum allowed high-risk findings
+  max_medium: 5                # Maximum allowed medium-risk findings
+  fail_on_high: true          # Fail build on high-risk findings
+  fail_on_medium: false       # Don't fail build on medium-risk findings
+
+authentication:
+  # Authentication settings for protected endpoints
+  login_url: "/api/v1/auth/login"
+  username_field: "email"
+  password_field: "password"
+  auth_header: "Authorization"
+  token_type: "Bearer"
+  verify_login: true
+
+attack_vectors:
+  # Security attack vector testing configuration
+  xss:
+    enabled: true
+    policy: "medium"
+    scripts:
+      - "../scripts/xss-tests.js"
+  sql_injection:
+    enabled: true
+    policy: "medium"
+    scripts:
+      - "../scripts/injection-tests.js"
+  csrf:
+    enabled: true
+    policy: "medium"
+  auth_attacks:
+    enabled: true
+    policy: "medium"
+    scripts:
+      - "../scripts/auth-attacks.js"
+
+reporting:
+  # Report generation configuration
+  format:
+    - "html"
+    - "json"
+  include_debug: false
+  summary_only: true
+  include_screenshots: false
+  risk_level_filter: "high"
+  template: "basic"
+  output_path: "${REPORT_PATH}/baseline-scan-report"
+
+# Custom Scripts Configuration
+scripts:
+  # Authentication testing scripts
+  auth:
+    path: "../scripts/auth-attacks.js"
+    enabled: true
+    parameters:
+      timeout: 5000
+      retries: 3
+
+  # SQL Injection testing scripts
+  sql:
+    path: "../scripts/injection-tests.js"
+    enabled: true
+    parameters:
+      timeout: 3000
+      vectors: ["UNION", "ERROR", "BLIND"]
+
+  # XSS testing scripts
+  xss:
+    path: "../scripts/xss-tests.js"
+    enabled: true
+    parameters:
+      timeout: 3000
+      test_types: ["reflected", "stored"]
+
+# Compliance Settings
+compliance:
+  soc2:
+    enabled: true
+    requirements:
+      - "CC1.1"    # Security scanning
+      - "CC7.1"    # Vulnerability assessment
+      - "CC8.1"    # Change management
+  
+  gdpr:
+    enabled: true
+    data_protection: true
+    privacy_checks: true
+
+# Performance Thresholds
+performance:
+  max_scan_duration: "30m"
+  max_requests_per_second: 50
+  max_concurrent_scans: 2
+  timeout_per_request: 10000
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  include_debug: false
+  log_to_file: true
+  log_path: "${REPORT_PATH}/baseline-scan.log"
