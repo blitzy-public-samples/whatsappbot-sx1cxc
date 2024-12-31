@@ -1,0 +1,117 @@
+# Artillery performance test configuration for normal load testing
+# Dependencies:
+# - artillery-plugin-expect: ^2.0.0
+# - @faker-js/faker: ^8.0.0
+
+config:
+  target: "http://api-gateway:8080"
+  plugins:
+    expect: {}
+    metrics-by-endpoint:
+      showResponseCodes: true
+      showResponseTimes: true
+      detailedMetrics: true
+      percentiles: [50, 75, 90, 95, 99]
+
+  phases:
+    - name: "warmup"
+      duration: 300
+      arrivalRate: 5
+      rampTo: 50
+      description: "Initial warmup phase to gradually increase system load"
+
+    - name: "normal_load"
+      duration: 1800
+      arrivalRate: 50
+      maxVusers: 1000
+      description: "Sustained normal load phase testing system stability"
+
+    - name: "rampdown"
+      duration: 300
+      arrivalRate: 50
+      rampTo: 5
+      description: "Gradual load reduction phase"
+
+  defaults:
+    headers:
+      Content-Type: "application/json"
+      Accept: "application/json"
+    timeout: 10000
+
+  variables:
+    messageTypes: ["text", "template", "media"]
+    maxBatchSize: 1000
+    retryAttempts: 3
+    retryDelay: 1000
+
+before:
+  flow:
+    - function: "setupTestEnvironment"
+      description: "Initialize test environment and authentication"
+
+after:
+  flow:
+    - function: "cleanupTestEnvironment"
+      description: "Cleanup test data and resources"
+
+scenarios:
+  - name: "bulk_messaging_scenario"
+    weight: 40
+    flow: "{{ bulk_message_flow }}"
+
+  - name: "contact_sync_scenario"
+    weight: 30
+    flow: "{{ contact_sync_flow }}"
+
+  - name: "template_processing_scenario"
+    weight: 30
+    flow: "{{ template_processing_flow }}"
+
+thresholds:
+  - "http.response_time": "p95 < 2000"  # 95th percentile response time under 2 seconds
+  - "http.requests": "rate > 50"        # Maintain minimum 50 requests per second
+  - "errors": "rate < 0.01"            # Error rate below 1%
+  - "vusers.session_length": "p95 < 30000"  # 95th percentile session length under 30 seconds
+
+reporting:
+  - format: "json"
+    output: "./reports/normal-load-report.json"
+  - format: "html"
+    output: "./reports/normal-load-report.html"
+
+functions:
+  setupTestEnvironment:
+    - log: "Setting up test environment"
+    - function: "generateAuthToken"
+    - function: "initializeMetrics"
+    - function: "setupTestData"
+
+  cleanupTestEnvironment:
+    - log: "Cleaning up test environment"
+    - function: "recordMetrics"
+    - function: "cleanupTestData"
+    - function: "validateResults"
+
+processor: "./processors/data-generator.js"
+
+environments:
+  development:
+    target: "http://localhost:8080"
+    phases:
+      - duration: 60
+        arrivalRate: 5
+        maxVusers: 100
+
+  staging:
+    target: "http://api-gateway.staging:8080"
+    phases:
+      - duration: 300
+        arrivalRate: 20
+        maxVusers: 500
+
+  production:
+    target: "http://api-gateway.production:8080"
+    phases:
+      - duration: 1800
+        arrivalRate: 50
+        maxVusers: 1000
