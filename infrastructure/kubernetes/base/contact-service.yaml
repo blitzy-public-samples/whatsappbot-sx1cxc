@@ -1,0 +1,132 @@
+# Contact Service Kubernetes Configuration
+# Version: 1.0.0
+# Dependencies: k8s.io/api v1
+# Purpose: Deployment and service configuration for the Contact Service microservice
+
+---
+# Contact Service Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: contact-service
+  namespace: whatsapp-web-enhancement
+  labels:
+    app: contact-service
+    component: backend
+    tier: microservice
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+    prometheus.io/path: "/metrics"
+spec:
+  replicas: 3  # High availability with multiple replicas
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0  # Zero-downtime deployments
+  selector:
+    matchLabels:
+      app: contact-service
+  template:
+    metadata:
+      labels:
+        app: contact-service
+        component: backend
+    spec:
+      containers:
+      - name: contact-service
+        image: contact-service:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        resources:
+          limits:
+            cpu: "1"
+            memory: "2Gi"
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+          successThreshold: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 30
+          successThreshold: 1
+        envFrom:
+        - configMapRef:
+            name: contact-service-config
+        - secretRef:
+            name: contact-service-secrets
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 2000
+      terminationGracePeriodSeconds: 60
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - contact-service
+              topologyKey: kubernetes.io/hostname
+
+---
+# Contact Service Network Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: contact-service
+  namespace: whatsapp-web-enhancement
+  labels:
+    app: contact-service
+    component: backend
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8000"
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: contact-service
+  sessionAffinity: None
