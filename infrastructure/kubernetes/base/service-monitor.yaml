@@ -1,0 +1,69 @@
+# ServiceMonitor CRD for WhatsApp Web Enhancement Application
+# Version: monitoring.coreos.com/v1
+# Prometheus Operator Version: 0.68.0
+# Purpose: Configure comprehensive metric collection and monitoring
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: whatsapp-web-enhancement-monitor
+  namespace: whatsapp-web-enhancement
+  labels:
+    app: whatsapp-web-enhancement
+    release: prometheus
+    monitoring: enabled
+    component: metrics
+spec:
+  # Service discovery configuration
+  selector:
+    matchLabels:
+      app: whatsapp-web-enhancement
+  namespaceSelector:
+    matchNames:
+      - whatsapp-web-enhancement
+  
+  # Endpoint configurations for metric collection
+  endpoints:
+    - port: metrics
+      interval: 15s  # Scrape interval aligned with requirements
+      path: /metrics
+      scrapeTimeout: 10s
+      honorLabels: true
+      
+      # Secure metrics endpoint configuration
+      scheme: https
+      tlsConfig:
+        insecureSkipVerify: false
+        serverName: metrics.whatsapp-web-enhancement.svc
+      
+      # Pod and service label management
+      relabelings:
+        - sourceLabels: ["__meta_kubernetes_pod_name"]
+          action: replace
+          targetLabel: pod
+        - sourceLabels: ["__meta_kubernetes_service_name"]
+          action: replace
+          targetLabel: service
+        - sourceLabels: ["__meta_kubernetes_namespace"]
+          action: replace
+          targetLabel: namespace
+      
+      # Metric filtering and security rules
+      metricRelabelings:
+        # Keep only relevant metrics
+        - sourceLabels: ["__name__"]
+          action: keep
+          regex: (http_requests_total|http_request_duration_seconds|memory_usage|cpu_usage|error_rate|security_events_total|auth_failures_total|message_processing_duration_seconds|database_connections|cache_hits_total)
+        
+        # Drop sensitive metrics
+        - sourceLabels: ["__name__"]
+          action: drop
+          regex: .*password.*|.*secret.*|.*token.*
+
+---
+# Additional annotations for Prometheus configuration
+annotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "metrics"
+  prometheus.io/scheme: "https"
+  prometheus.io/path: "/metrics"
