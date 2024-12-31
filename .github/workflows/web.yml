@@ -1,0 +1,255 @@
+name: Web Application CI/CD Pipeline
+
+# Trigger configuration for main branch and pull requests
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/web/**'
+      - '.github/workflows/web.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/web/**'
+      - '.github/workflows/web.yml'
+
+# Environment configuration
+env:
+  NODE_VERSION: '20.x'
+  AWS_REGION: 'us-east-1'
+  DOCKER_BUILDKIT: '1'
+  SCAN_SEVERITY_THRESHOLD: 'HIGH'
+
+# Concurrency control to prevent parallel workflow runs
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    environment: development
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: npm-${{ hashFiles('src/web/package-lock.json') }}
+          restore-keys: npm-
+          
+      - name: Install dependencies
+        working-directory: src/web
+        run: npm ci --prefer-offline
+        
+      - name: Run ESLint
+        working-directory: src/web
+        run: npm run lint
+        
+      - name: Run TypeScript type checking
+        working-directory: src/web
+        run: npm run typecheck
+        
+      - name: Run unit tests with coverage
+        working-directory: src/web
+        run: npm run test:coverage
+        
+      - name: Build application
+        working-directory: src/web
+        run: npm run build
+        
+      - name: Upload test coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: src/web/coverage
+          retention-days: 14
+
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    environment: development
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: javascript
+          
+      - name: Run CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          
+      - name: Run npm audit
+        working-directory: src/web
+        run: npm audit --audit-level=${{ env.SCAN_SEVERITY_THRESHOLD }}
+        
+      - name: Build temporary container for scanning
+        working-directory: src/web
+        run: docker build -t web-app:scan .
+        
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.11.2
+        with:
+          image-ref: web-app:scan
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: ${{ env.SCAN_SEVERITY_THRESHOLD }}
+          
+      - name: Generate security report
+        run: |
+          echo "Security Scan Results" > security-report.txt
+          echo "===================" >> security-report.txt
+          echo "CodeQL, npm audit, and Trivy scans completed" >> security-report.txt
+          
+      - name: Upload security report
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-report
+          path: security-report.txt
+          retention-days: 30
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: [build-and-test, security-scan]
+    runs-on: ubuntu-latest
+    environment: 
+      name: staging
+      url: https://staging.whatsapp-web-enhancement.com
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+        
+      - name: Build and push Docker image
+        working-directory: src/web
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          IMAGE_TAG: staging-${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/web-app:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/web-app:$IMAGE_TAG
+          
+      - name: Deploy to staging
+        env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+        run: |
+          echo "$KUBECONFIG" > kubeconfig.yaml
+          kubectl --kubeconfig=kubeconfig.yaml set image deployment/web-staging web-app=${{ secrets.ECR_REGISTRY }}/web-app:staging-${{ github.sha }}
+          
+      - name: Wait for deployment
+        run: |
+          kubectl --kubeconfig=kubeconfig.yaml rollout status deployment/web-staging --timeout=300s
+          
+      - name: Run integration tests
+        run: |
+          echo "Running integration tests against staging environment"
+          # Add integration test commands here
+          
+      - name: Cleanup
+        run: rm kubeconfig.yaml
+
+  deploy-production:
+    name: Deploy to Production
+    needs: [deploy-staging]
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://whatsapp-web-enhancement.com
+    
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+          
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+        
+      - name: Promote staging image
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+        run: |
+          docker pull $ECR_REGISTRY/web-app:staging-${{ github.sha }}
+          docker tag $ECR_REGISTRY/web-app:staging-${{ github.sha }} $ECR_REGISTRY/web-app:production-${{ github.sha }}
+          docker push $ECR_REGISTRY/web-app:production-${{ github.sha }}
+          
+      - name: Deploy blue environment
+        env:
+          KUBECONFIG: ${{ secrets.KUBECONFIG }}
+        run: |
+          echo "$KUBECONFIG" > kubeconfig.yaml
+          kubectl --kubeconfig=kubeconfig.yaml apply -f - <<EOF
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: web-blue
+          spec:
+            replicas: 3
+            template:
+              spec:
+                containers:
+                - name: web-app
+                  image: ${{ secrets.ECR_REGISTRY }}/web-app:production-${{ github.sha }}
+          EOF
+          
+      - name: Health check blue environment
+        run: |
+          kubectl --kubeconfig=kubeconfig.yaml rollout status deployment/web-blue --timeout=300s
+          
+      - name: Progressive traffic shift
+        run: |
+          # Gradually shift traffic from green to blue
+          for i in 25 50 75 100; do
+            kubectl --kubeconfig=kubeconfig.yaml patch service web-production -p "{\"spec\":{\"selector\":{\"environment\":\"blue\",\"weight\":$i}}}"
+            sleep 30
+          done
+          
+      - name: Finalize deployment
+        run: |
+          kubectl --kubeconfig=kubeconfig.yaml delete deployment web-green
+          kubectl --kubeconfig=kubeconfig.yaml label deployment web-blue environment=production
+          
+      - name: Cleanup
+        run: rm kubeconfig.yaml
+        
+      - name: Notify deployment status
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data "{
+            \"text\":\"Production deployment ${{ job.status }}: ${{ github.repository }}@${{ github.sha }}\"
+          }" $SLACK_WEBHOOK_URL
