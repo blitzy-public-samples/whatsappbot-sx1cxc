@@ -1,0 +1,39 @@
+File Format: ICO (Image/x-icon)
+File Size: < 10KB
+Contains 3 image sizes: 16x16, 32x32, and 48x48 pixels
+
+Image Specifications:
+- Primary Color: #1976D2 (Material Design Blue)
+- Background: Transparent
+- Format: 32-bit RGBA with alpha channel support
+- Compression: Standard ICO compression
+
+The icon should be created using professional image editing software following these guidelines:
+1. Create a simple, recognizable "W" glyph using the primary color #1976D2
+2. Ensure the design is legible at 16x16 pixels
+3. Export with anti-aliasing for crisp edges
+4. Include all three required resolutions in the ICO container
+5. Optimize the final file size to under 10KB
+
+The icon will be referenced by:
+- index.html via <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
+- manifest.json for PWA installation icons
+- Browser bookmarks and tabs
+
+Caching Headers:
+Cache-Control: public, max-age=31536000
+
+Security Headers:
+Content-Security-Policy: img-src 'self'
+Access-Control-Allow-Origin: *
+
+Browser Support:
+Chrome >=73
+Firefox >=67
+Safari >=11.1
+Edge >=79
+
+Accessibility:
+- Meets WCAG 2.1 AA standards for recognizable iconography
+- Maintains visibility in high-contrast modes
+- Role: presentation
