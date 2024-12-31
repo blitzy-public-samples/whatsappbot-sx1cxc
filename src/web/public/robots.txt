@@ -1,0 +1,76 @@
+# Version: 1.0
+# Last Updated: 2023
+# Purpose: Define crawler access control policies and protect sensitive routes
+
+# Default rules for all web crawlers
+User-agent: *
+# Set crawl delay to prevent server overload
+Crawl-delay: 10
+
+# Allow public routes
+Allow: /
+Allow: /login
+Allow: /signup
+Allow: /about
+Allow: /contact
+Allow: /terms
+Allow: /privacy
+Allow: /manifest.json
+Allow: /favicon.ico
+Allow: /robots.txt
+Allow: /static/images
+Allow: /static/fonts
+
+# Disallow sensitive and protected routes
+Disallow: /dashboard/*
+Disallow: /messages/*
+Disallow: /contacts/*
+Disallow: /templates/*
+Disallow: /analytics/*
+Disallow: /settings/*
+Disallow: /api/*
+Disallow: /auth/*
+Disallow: /user/*
+Disallow: /admin/*
+Disallow: /socket/*
+Disallow: /media/*
+Disallow: /upload/*
+Disallow: /download/*
+
+# Specific rules for Googlebot with enhanced restrictions
+User-agent: Googlebot
+Crawl-delay: 10
+
+# Allow public routes for Googlebot
+Allow: /
+Allow: /login
+Allow: /signup
+Allow: /about
+Allow: /contact
+Allow: /terms
+Allow: /privacy
+Allow: /manifest.json
+Allow: /favicon.ico
+Allow: /robots.txt
+Allow: /static/images
+Allow: /static/fonts
+
+# Disallow sensitive routes and specific file types for Googlebot
+Disallow: /dashboard/*
+Disallow: /messages/*
+Disallow: /contacts/*
+Disallow: /templates/*
+Disallow: /analytics/*
+Disallow: /settings/*
+Disallow: /api/*
+Disallow: /auth/*
+Disallow: /user/*
+Disallow: /admin/*
+Disallow: /socket/*
+Disallow: /media/*
+Disallow: /upload/*
+Disallow: /download/*
+Disallow: /*?*
+Disallow: /*.json$
+Disallow: /*.js$
+Disallow: /*.css$
