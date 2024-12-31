@@ -1,0 +1,108 @@
+# Grafana Tempo Configuration v2.3.0
+# Purpose: Distributed tracing system configuration for WhatsApp Web Enhancement Application
+# Security: Enhanced with TLS, encryption, and access controls
+# Scalability: Configured for high-volume trace ingestion and processing
+
+server:
+  http_listen_port: 3200
+  grpc_listen_port: 9096
+  log_level: info
+  # TLS configuration for secure communication
+  http_tls_config:
+    cert_file: /etc/tempo/certs/tls.crt
+    key_file: /etc/tempo/certs/tls.key
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+          tls_config:
+            cert_file: /etc/tempo/certs/tls.crt
+            key_file: /etc/tempo/certs/tls.key
+        http:
+          endpoint: 0.0.0.0:4318
+          tls_config:
+            cert_file: /etc/tempo/certs/tls.crt
+            key_file: /etc/tempo/certs/tls.key
+  # Enable span logging for debugging and auditing
+  log_received_spans:
+    enabled: true
+    include_all_attributes: false
+
+ingester:
+  max_block_duration: 2h  # Aligned with global settings
+  trace_idle_period: 30s
+  flush_check_period: 1m
+  max_block_bytes: 1073741824  # 1GB block size
+  lifecycler:
+    ring:
+      kvstore:
+        store: memberlist
+      replication_factor: 3  # High availability configuration
+
+compactor:
+  compaction:
+    block_retention: 336h  # 14 days retention
+    compacted_block_retention: 1h
+    compaction_window: 1h
+    max_compaction_objects: 1000000
+    retries: 3
+
+storage:
+  trace:
+    backend: s3
+    s3:
+      bucket: whatsapp-web-enhancement-traces
+      region: us-east-1
+      access_key: ${AWS_ACCESS_KEY_ID}
+      secret_key: ${AWS_SECRET_ACCESS_KEY}
+      # Enhanced security with encryption
+      server_side_encryption: AES256
+      sse_kms_key_id: ${AWS_KMS_KEY_ID}
+    pool:
+      max_workers: 100  # Aligned with global settings
+      queue_depth: 10000
+
+overrides:
+  # Resource limits and quotas
+  max_bytes_per_trace: 52428800  # 50MB
+  max_search_duration: 1h
+  max_bytes_per_tag_values_query: 5242880  # 5MB
+  ingestion_rate_limit_bytes: 15728640  # 15MB/s
+  ingestion_burst_size_bytes: 20971520  # 20MB
+
+# Memberlist configuration for high availability
+memberlist:
+  abort_if_cluster_join_fails: false
+  join_members:
+    - tempo-0.tempo-memberlist:7946
+    - tempo-1.tempo-memberlist:7946
+    - tempo-2.tempo-memberlist:7946
+  max_join_backoff: 1m
+  max_join_retries: 10
+  min_join_backoff: 1s
+
+# Query frontend configuration
+query_frontend:
+  search:
+    max_duration: 1h
+  trace_by_id:
+    max_duration: 1h
+
+# Metrics configuration for monitoring
+metrics:
+  prometheus:
+    enabled: true
+    endpoint: 0.0.0.0:3201
+
+# Limits configuration
+limits:
+  per_tenant_override_config: /etc/tempo/overrides.yaml
+  per_tenant_override_period: 10s
+
+# Security configuration
+rbac:
+  enabled: true
+  auth_enabled: true
