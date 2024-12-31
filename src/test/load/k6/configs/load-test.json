@@ -1,0 +1,99 @@
+{
+  "scenarios": {
+    "messageApiScenario": {
+      "description": "Load test configuration for message API endpoints with comprehensive metrics tracking",
+      "executor": "ramping-vus",
+      "startVUs": 0,
+      "stages": [
+        { "duration": "1m", "target": 50 },
+        { "duration": "3m", "target": 500 },
+        { "duration": "2m", "target": 1000 },
+        { "duration": "1m", "target": 0 }
+      ],
+      "gracefulRampDown": "30s",
+      "env": {
+        "ENDPOINT_TYPE": "message"
+      },
+      "thresholds": {
+        "http_req_duration": ["p(95)<2000", "p(99)<3000"],
+        "http_req_failed": ["rate<0.01"],
+        "message_send_requests": ["count>1000", "rate>50"],
+        "message_schedule_requests": ["count>500", "p(95)<2500"],
+        "message_status_checks": ["count>2000", "rate>100"],
+        "message_batch_operations": ["p(95)<4000"],
+        "message_template_usage": ["count>200"]
+      }
+    },
+    "contactApiScenario": {
+      "description": "Load test configuration for contact management API endpoints with detailed operation tracking",
+      "executor": "ramping-vus",
+      "startVUs": 0,
+      "stages": [
+        { "duration": "1m", "target": 50 },
+        { "duration": "3m", "target": 500 },
+        { "duration": "2m", "target": 1000 },
+        { "duration": "1m", "target": 0 }
+      ],
+      "gracefulRampDown": "30s",
+      "env": {
+        "ENDPOINT_TYPE": "contact"
+      },
+      "thresholds": {
+        "http_req_duration": ["p(95)<2000", "p(99)<3000"],
+        "http_req_failed": ["rate<0.01"],
+        "contact_operations": ["count>5000", "rate>250"],
+        "group_operations": ["count>1000", "rate>50"],
+        "contact_bulk_imports": ["p(95)<5000"],
+        "contact_search_operations": ["p(95)<1000"],
+        "contact_update_operations": ["count>1000"]
+      }
+    },
+    "templateApiScenario": {
+      "description": "Load test configuration for template management API endpoints with operation-specific metrics",
+      "executor": "ramping-vus",
+      "startVUs": 0,
+      "stages": [
+        { "duration": "1m", "target": 50 },
+        { "duration": "3m", "target": 500 },
+        { "duration": "2m", "target": 1000 },
+        { "duration": "1m", "target": 0 }
+      ],
+      "gracefulRampDown": "30s",
+      "env": {
+        "ENDPOINT_TYPE": "template"
+      },
+      "thresholds": {
+        "http_req_duration": ["p(95)<2000", "p(99)<3000"],
+        "http_req_failed": ["rate<0.01"],
+        "template_create_duration": ["p(95)<3000", "rate<50"],
+        "template_update_duration": ["p(95)<3000", "rate<50"],
+        "template_get_duration": ["p(95)<1000", "rate>100"],
+        "template_errors": ["count<50"],
+        "template_validation_time": ["p(95)<1500"]
+      }
+    }
+  },
+  "thresholds": {
+    "http_req_duration": ["p(95)<2000", "p(99)<3000"],
+    "http_req_failed": ["rate<0.01"],
+    "iteration_duration": ["p(95)<3000", "p(99)<4000"],
+    "vus": ["value<1000"],
+    "http_req_connecting": ["p(95)<1000"],
+    "http_req_tls_handshaking": ["p(95)<1000"],
+    "http_req_waiting": ["p(95)<1500"]
+  },
+  "options": {
+    "noConnectionReuse": false,
+    "userAgent": "WhatsAppWebEnhancement/LoadTest/1.0",
+    "maxRedirects": 4,
+    "summaryTrendStats": ["avg", "min", "med", "max", "p(90)", "p(95)", "p(99)"],
+    "systemTags": ["status", "method", "url", "name", "group", "scenario"],
+    "teardownTimeout": "30s",
+    "setupTimeout": "30s",
+    "rps": 1000,
+    "batch": 50,
+    "batchPerHost": 25,
+    "httpDebug": "full"
+  },
+  "baseUrl": "http://localhost:3000/api/v1"
+}
