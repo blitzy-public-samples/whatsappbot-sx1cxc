@@ -1,0 +1,127 @@
+# Version: v1
+# Purpose: Kubernetes base configuration for the WhatsApp Web Enhancement Application frontend
+# Dependencies:
+# - k8s.io/api/apps/v1
+# - k8s.io/api/core/v1
+
+---
+# Frontend Deployment Configuration
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: whatsapp-web-enhancement
+  labels:
+    app: whatsapp-web-enhancement
+    component: frontend
+    version: latest
+spec:
+  # High availability configuration with 3 replicas
+  replicas: 3
+  # Rolling update strategy for zero-downtime deployments
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: whatsapp-web-enhancement
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: whatsapp-web-enhancement
+        component: frontend
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "80"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: web
+          image: web:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+              name: http
+          # Resource limits and requests as per specification
+          resources:
+            limits:
+              cpu: "1"
+              memory: "2Gi"
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+          # Health monitoring configuration
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+          # Security context for container hardening
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+          # Volume mounts for configuration and secrets
+          volumeMounts:
+            - name: config-volume
+              mountPath: /app/config
+              readOnly: true
+            - name: secrets-volume
+              mountPath: /app/secrets
+              readOnly: true
+            - name: tmp-volume
+              mountPath: /tmp
+      # Volumes configuration
+      volumes:
+        - name: config-volume
+          configMap:
+            name: web-config
+        - name: secrets-volume
+          secret:
+            secretName: web-secrets
+        - name: tmp-volume
+          emptyDir: {}
+      # Security context for pod
+      securityContext:
+        fsGroup: 1000
+      # Termination grace period for clean shutdown
+      terminationGracePeriodSeconds: 60
+
+---
+# Frontend Service Configuration
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: whatsapp-web-enhancement
+  labels:
+    app: whatsapp-web-enhancement
+    component: frontend
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "80"
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: whatsapp-web-enhancement
+    component: frontend
