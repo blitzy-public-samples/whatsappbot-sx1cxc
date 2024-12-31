@@ -1,0 +1,91 @@
+# Kustomize configuration for development environment overlay
+# Version: kustomize.config.k8s.io/v1beta1
+# Purpose: Customizes base Kubernetes manifests for development-specific settings
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Reference to base configuration
+resources:
+- ../../base
+
+# Development namespace configuration
+namespace: whatsapp-web-enhancement-dev
+
+# Common labels for all resources
+commonLabels:
+  environment: development
+  managed-by: kustomize
+  app: whatsapp-web-enhancement
+
+# Common annotations for all resources
+commonAnnotations:
+  environment: development
+  description: Development environment overlay for WhatsApp Web Enhancement Application
+  maintainer: DevOps Team
+
+# Configure replica counts for development environment
+replicas:
+- name: analytics-service
+  count: 1
+- name: api-gateway
+  count: 1
+- name: message-service
+  count: 1
+- name: contact-service
+  count: 1
+- name: template-service
+  count: 1
+
+# Image configurations for development tags
+images:
+- name: analytics-service
+  newName: analytics-service
+  newTag: dev
+- name: api-gateway
+  newName: api-gateway
+  newTag: dev
+- name: message-service
+  newName: message-service
+  newTag: dev
+- name: contact-service
+  newName: contact-service
+  newTag: dev
+- name: template-service
+  newName: template-service
+  newTag: dev
+
+# Strategic merge patches for development configurations
+patches:
+- target:
+    kind: Deployment
+    name: .*
+  patch: |
+    spec:
+      template:
+        spec:
+          containers:
+          - name: .*
+            resources:
+              limits:
+                cpu: "1"
+                memory: "2Gi"
+              requests:
+                cpu: "250m"
+                memory: "512Mi"
+            env:
+            - name: DEBUG_MODE
+              value: "true"
+            - name: LOG_LEVEL
+              value: "debug"
+
+# Development environment ConfigMap generation
+configMapGenerator:
+- name: dev-environment-config
+  literals:
+  - ENV=development
+  - LOG_LEVEL=debug
+  - ENABLE_DEBUG=true
+  - METRICS_ENABLED=true
+  - TRACE_SAMPLING_RATE=1.0
+  - HOT_RELOAD=enabled
