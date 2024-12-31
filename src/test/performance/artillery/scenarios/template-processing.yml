@@ -1,0 +1,193 @@
+# Artillery performance test scenario for template processing operations
+# Dependencies:
+# @faker-js/faker: ^8.0.0
+# artillery-plugin-expect: ^2.0.0
+
+config:
+  target: "http://template-service:3000"
+  phases:
+    - name: "warmup"
+      duration: 60
+      arrivalRate: 5
+    - name: "ramp_up"
+      duration: 300
+      arrivalRate: 20
+      rampTo: 50
+    - name: "sustained_load"
+      duration: 600
+      arrivalRate: 50
+    - name: "ramp_down"
+      duration: 60
+      arrivalRate: 50
+      rampTo: 5
+
+  environments:
+    development:
+      target: "http://localhost:3000"
+    staging:
+      target: "http://template-service.staging:3000"
+    production:
+      target: "http://template-service.production:3000"
+
+  plugins:
+    expect:
+      outputFormat: "json"
+      failOnError: true
+      verbose: true
+    metrics-by-endpoint:
+      enabled: true
+
+  thresholds:
+    - "http.response_time.p95": 2000
+    - "http.requests.rate": 20
+    - "errors.rate": 0.01
+    - "vusers.session_length.p95": 5000
+
+  reporting:
+    - format: "json"
+      output: "./reports/template-processing-report.json"
+    - format: "html"
+      output: "./reports/template-processing-report.html"
+
+processor: "./template-processor.js"
+
+scenarios:
+  - name: "template_crud_operations"
+    weight: 1
+    flow:
+      # Create Template Operation
+      - post:
+          url: "/api/v1/templates"
+          beforeRequest: "generateTemplateData"
+          name: "Create Template"
+          expect:
+            - statusCode: 201
+            - hasProperty: "id"
+            - hasProperty: "content"
+            - hasProperty: "version"
+            - hasProperty: "createdAt"
+            - contentType: "application/json"
+          capture:
+            - json: "$.id"
+              as: "templateId"
+
+      # Get Template Operation
+      - get:
+          url: "/api/v1/templates/{{ templateId }}"
+          name: "Get Template"
+          expect:
+            - statusCode: 200
+            - hasProperty: "content"
+            - hasProperty: "version"
+            - responseTime: 2000
+
+      # Update Template Operation
+      - put:
+          url: "/api/v1/templates/{{ templateId }}"
+          beforeRequest: "generateTemplateData"
+          name: "Update Template"
+          expect:
+            - statusCode: 200
+            - hasProperty: "updatedAt"
+            - hasProperty: "version"
+            - responseTime: 2000
+
+      # Delete Template Operation
+      - delete:
+          url: "/api/v1/templates/{{ templateId }}"
+          name: "Delete Template"
+          expect:
+            - statusCode: 204
+            - responseTime: 2000
+
+      # Template Bulk Operations
+      - post:
+          url: "/api/v1/templates/bulk"
+          beforeRequest: "generateBulkTemplateData"
+          name: "Bulk Create Templates"
+          expect:
+            - statusCode: 201
+            - hasProperty: "successCount"
+            - responseTime: 5000
+
+      # Template Search Operation
+      - get:
+          url: "/api/v1/templates"
+          qs:
+            limit: 10
+            offset: 0
+            sort: "createdAt:desc"
+          name: "Search Templates"
+          expect:
+            - statusCode: 200
+            - hasProperty: "items"
+            - hasProperty: "total"
+            - responseTime: 2000
+
+      # Template Version History
+      - get:
+          url: "/api/v1/templates/{{ templateId }}/history"
+          name: "Get Template History"
+          expect:
+            - statusCode: 200
+            - hasProperty: "versions"
+            - responseTime: 2000
+
+  - name: "template_validation_scenarios"
+    weight: 1
+    flow:
+      # Invalid Template Creation
+      - post:
+          url: "/api/v1/templates"
+          beforeRequest: "generateInvalidTemplateData"
+          name: "Create Invalid Template"
+          expect:
+            - statusCode: 400
+            - hasProperty: "errors"
+            - contentType: "application/json"
+
+      # Template Variable Validation
+      - post:
+          url: "/api/v1/templates/validate"
+          beforeRequest: "generateTemplateWithVariables"
+          name: "Validate Template Variables"
+          expect:
+            - statusCode: 200
+            - hasProperty: "isValid"
+            - hasProperty: "variables"
+            - responseTime: 1000
+
+      # Template Rendering Test
+      - post:
+          url: "/api/v1/templates/render"
+          beforeRequest: "generateTemplateRenderData"
+          name: "Test Template Rendering"
+          expect:
+            - statusCode: 200
+            - hasProperty: "renderedContent"
+            - responseTime: 2000
+
+  - name: "template_concurrent_operations"
+    weight: 1
+    flow:
+      # Concurrent Template Creation
+      - loop:
+          - post:
+              url: "/api/v1/templates"
+              beforeRequest: "generateTemplateData"
+              name: "Concurrent Template Creation"
+              expect:
+                - statusCode: 201
+                - responseTime: 3000
+        count: 5
+
+      # Concurrent Template Updates
+      - loop:
+          - put:
+              url: "/api/v1/templates/{{ templateId }}"
+              beforeRequest: "generateTemplateData"
+              name: "Concurrent Template Updates"
+              expect:
+                - statusCode: 200
+                - responseTime: 3000
+        count: 3
