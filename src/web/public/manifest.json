@@ -1,0 +1,61 @@
+{
+  "name": "WhatsApp Web Enhancement",
+  "short_name": "WhatsApp+",
+  "description": "Enterprise-grade WhatsApp management solution for businesses with advanced messaging capabilities",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#1976D2",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "maskable-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "orientation": "any",
+  "scope": "/",
+  "prefer_related_applications": false,
+  "categories": [
+    "business",
+    "productivity",
+    "communication"
+  ],
+  "shortcuts": [
+    {
+      "name": "New Message",
+      "url": "/compose",
+      "description": "Compose a new message"
+    },
+    {
+      "name": "Contacts",
+      "url": "/contacts",
+      "description": "Manage contacts"
+    }
+  ],
+  "related_applications": [],
+  "protocol_handlers": [
+    {
+      "protocol": "web+whatsapp",
+      "url": "/handle/%s"
+    }
+  ]
+}
