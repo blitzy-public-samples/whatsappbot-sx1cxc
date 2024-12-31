@@ -1,0 +1,81 @@
+# OpenTelemetry Collector Configuration v0.88.0
+# Enhanced configuration for WhatsApp Web Enhancement Application
+# with optimized memory management and debugging capabilities
+
+extensions:
+  health_check: {}
+  
+  memory_ballast:
+    # Configured for optimal garbage collection on containers
+    size_mib: 683
+  
+  pprof:
+    # Debug endpoint for performance profiling
+    endpoint: "0.0.0.0:1777"
+  
+  zpages:
+    # Internal debugging pages
+    endpoint: "0.0.0.0:55679"
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: "0.0.0.0:4317"
+      http:
+        endpoint: "0.0.0.0:4318"
+  
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: "whatsapp-web-enhancement"
+          scrape_interval: "15s"
+          kubernetes_sd_configs:
+            - role: "pod"
+
+processors:
+  batch:
+    # Optimized batch settings for production workloads
+    timeout: "1s"
+    send_batch_size: 1024
+  
+  memory_limiter:
+    # Memory management settings
+    check_interval: "1s"
+    limit_mib: 1536
+    spike_limit_mib: 512
+  
+  resourcedetection:
+    # Enhanced resource detection for cloud environments
+    detectors: ["env", "kubernetes"]
+    timeout: "10s"
+
+exporters:
+  prometheus:
+    endpoint: "0.0.0.0:8889"
+  
+  loki:
+    endpoint: "http://loki:3100/loki/api/v1/push"
+  
+  otlp/tempo:
+    endpoint: "tempo:4317"
+    tls:
+      insecure: true
+
+service:
+  extensions: [health_check, memory_ballast, pprof, zpages]
+  pipelines:
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [memory_limiter, resourcedetection, batch]
+      exporters: [prometheus]
+    
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, resourcedetection, batch]
+      exporters: [loki]
+    
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, resourcedetection, batch]
+      exporters: [otlp/tempo]
