@@ -1,0 +1,155 @@
+name: Message Service CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/backend/message-service/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/backend/message-service/**'
+
+env:
+  GO_VERSION: '1.21'
+  DOCKER_REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
+  IMAGE_NAME: 'message-service'
+  COVERAGE_THRESHOLD: '85'
+  TRIVY_SEVERITY: 'CRITICAL,HIGH'
+  AWS_REGION: 'us-east-1'
+  EKS_CLUSTER: 'whatsapp-web-enhancement'
+  KUBECONFIG: '${{ github.workspace }}/.kubeconfig'
+
+jobs:
+  test:
+    name: Test and Code Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: src/backend/message-service/go.sum
+
+      - name: Install dependencies
+        working-directory: src/backend/message-service
+        run: |
+          go mod download
+          go mod verify
+
+      - name: Run tests with coverage
+        working-directory: src/backend/message-service
+        run: |
+          go test -race -coverprofile=coverage.out -covermode=atomic ./...
+          go tool cover -func=coverage.out
+
+      - name: Check coverage threshold
+        working-directory: src/backend/message-service
+        run: |
+          COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
+          if (( $(echo "$COVERAGE < ${{ env.COVERAGE_THRESHOLD }}" | bc -l) )); then
+            echo "Code coverage $COVERAGE% is below threshold ${{ env.COVERAGE_THRESHOLD }}%"
+            exit 1
+          fi
+
+  build-and-push:
+    name: Build and Push Docker Image
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          password: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          version: latest
+          buildkitd-flags: --debug
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: src/backend/message-service
+          file: src/backend/message-service/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=registry,ref=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+          build-args: |
+            GO_VERSION=${{ env.GO_VERSION }}
+            BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+            GIT_COMMIT=${{ github.sha }}
+
+      - name: Scan image for vulnerabilities
+        uses: aquasecurity/trivy-action@0.14.0
+        with:
+          image-ref: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: ${{ env.TRIVY_SEVERITY }}
+
+  deploy:
+    name: Deploy to EKS
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
+
+      - name: Deploy to EKS
+        run: |
+          # Update the image tag in Kubernetes manifests
+          sed -i "s|image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:.*|image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}|" \
+            infrastructure/kubernetes/base/message-service.yaml
+          
+          # Apply the updated manifests
+          kubectl apply -f infrastructure/kubernetes/base/message-service.yaml
+          
+          # Wait for rollout to complete
+          kubectl rollout status deployment/message-service -n message-service --timeout=300s
+
+      - name: Verify Deployment
+        run: |
+          # Check deployment status
+          kubectl get deployment message-service -n message-service -o wide
+          
+          # Check pod status
+          kubectl get pods -n message-service -l app=message-service
