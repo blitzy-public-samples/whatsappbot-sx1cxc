@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="100%" height="100%" viewBox="0 0 240 80" preserveAspectRatio="xMidYMid meet"
+     xmlns="http://www.w3.org/2000/svg"
+     role="img"
+     aria-label="WhatsApp Web Enhancement Application Logo">
+    
+    <!-- Background Layer -->
+    <defs>
+        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#1976D2;stop-opacity:1" />
+            <stop offset="100%" style="stop-color:#1565C0;stop-opacity:1" />
+        </linearGradient>
+    </defs>
+
+    <!-- Main Logo Container -->
+    <g id="logo-container">
+        <!-- Chat Bubble Shape -->
+        <path d="M40 10
+                 C15 10 10 30 10 40
+                 C10 50 15 70 40 70
+                 L200 70
+                 C225 70 230 50 230 40
+                 C230 30 225 10 200 10
+                 Z"
+              fill="url(#logoGradient)"
+              stroke="#424242"
+              stroke-width="2"/>
+
+        <!-- Message Icon -->
+        <g transform="translate(30, 25)" fill="#FFFFFF">
+            <path d="M20 0
+                     C8.95 0 0 8.95 0 20
+                     C0 23.85 1.05 27.45 2.9 30.55
+                     L0.7 39.3
+                     L9.45 37.1
+                     C12.55 38.95 16.15 40 20 40
+                     C31.05 40 40 31.05 40 20
+                     C40 8.95 31.05 0 20 0
+                     ZM20 36
+                     C16.65 36 13.5 35.05 10.8 33.35
+                     L10.4 33.1
+                     L5.25 34.4
+                     L6.55 29.25
+                     L6.3 28.85
+                     C4.6 26.15 3.65 23 3.65 19.65
+                     C3.65 10.9 11.25 3.65 20 3.65
+                     C28.75 3.65 36 10.9 36 19.65
+                     C36 28.4 28.75 36 20 36Z"/>
+        </g>
+
+        <!-- Text "Web Enhancement" -->
+        <text x="85" y="45"
+              font-family="Roboto, sans-serif"
+              font-size="24"
+              fill="#FFFFFF"
+              font-weight="500">
+            Web Enhancement
+        </text>
+    </g>
+
+    <!-- Responsive Design Support -->
+    <style type="text/css">
+        @media (max-width: 768px) {
+            #logo-container {
+                transform: scale(0.75);
+            }
+        }
+        @media (min-width: 769px) and (max-width: 1279px) {
+            #logo-container {
+                transform: scale(0.875);
+            }
+        }
+    </style>
+
+    <!-- Performance Optimizations -->
+    <metadata>
+        <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+                 xmlns:dc="http://www.purl.org/dc/elements/1.1/">
+            <rdf:Description>
+                <dc:title>WhatsApp Web Enhancement Application Logo</dc:title>
+                <dc:description>Official logo for the WhatsApp Web Enhancement Application</dc:description>
+                <dc:format>image/svg+xml</dc:format>
+                <dc:creator>WhatsApp Web Enhancement Team</dc:creator>
+            </rdf:Description>
+        </rdf:RDF>
+    </metadata>
+</svg>
