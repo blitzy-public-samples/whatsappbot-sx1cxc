@@ -1,0 +1,171 @@
+# Prometheus Alert Rules for WhatsApp Web Enhancement Application
+# Version: 2.45.0
+# Evaluation Interval: 30s
+# Scrape Interval: 15s
+
+groups:
+  # System Resource and Infrastructure Alerts
+  - name: system_alerts
+    rules:
+    - alert: HighCPUUsage
+      expr: avg by(node) (rate(node_cpu_seconds_total{mode="user"}[5m]) * 100) > 80
+      for: 5m
+      labels:
+        severity: warning
+        category: system
+      annotations:
+        summary: "High CPU usage on {{ $labels.node }}"
+        description: "CPU usage is above 80% for 5 minutes"
+        runbook_url: "https://runbooks.whatsapp-enhancement.com/high-cpu"
+
+    - alert: HighMemoryUsage
+      expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+      for: 5m
+      labels:
+        severity: warning
+        category: system
+      annotations:
+        summary: "High memory usage on {{ $labels.node }}"
+        description: "Memory usage is above 85% for 5 minutes"
+        runbook_url: "https://runbooks.whatsapp-enhancement.com/high-memory"
+
+    - alert: DiskSpaceLow
+      expr: (node_filesystem_size_bytes - node_filesystem_free_bytes) / node_filesystem_size_bytes * 100 > 85
+      for: 10m
+      labels:
+        severity: warning
+        category: system
+      annotations:
+        summary: "Low disk space on {{ $labels.device }}"
+        description: "Disk usage is above 85% for 10 minutes"
+        runbook_url: "https://runbooks.whatsapp-enhancement.com/disk-space"
+
+    - alert: NodeDown
+      expr: up == 0
+      for: 1m
+      labels:
+        severity: critical
+        category: system
+      annotations:
+        summary: "Node {{ $labels.node }} is down"
+        description: "Node has been down for more than 1 minute"
+        runbook_url: "https://runbooks.whatsapp-enhancement.com/node-down"
+
+  # Application Performance Alerts
+  - name: application_alerts
+    rules:
+    - alert: HighErrorRate
+      expr: sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) * 100 > 5
+      for: 5m
+      labels:
+        severity: critical
+        category: application
+      annotations:
+        summary: "High error rate detected"
+        description: "Error rate is above 5% for 5 minutes"
+        runbook_url: "https://runbooks.whatsapp-enhancement.com/high-error-rate"
+
+    - alert: HighLatency
+      expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 2
+      for: 5m
+      labels:
+        severity: warning
+        category: application
+      annotations:
+        summary: "High API latency detected"
+        description: "95th percentile latency is above 2 seconds"
+        runbook_url: "https://runbooks.whatsapp-enhancement.com/high-latency"
+
+    - alert: MessageDeliveryFailure
+      expr: rate(whatsapp_message_delivery_failures_total[5m]) > 10
+      for: 5m
+      labels:
+        severity: critical
+        category: application
+      annotations:
+        summary: "High message delivery failure rate"
+        description: "Message delivery failures exceeding threshold"
+        runbook_url: "https://runbooks.whatsapp-enhancement.com/delivery-failures"
+
+    - alert: ServiceDegradation
+      expr: avg_over_time(service_health_score[5m]) < 0.9
+      for: 5m
+      labels:
+        severity: warning
+        category: application
+      annotations:
+        summary: "Service health degradation detected"
+        description: "Service health score below 90% for 5 minutes"
+        runbook_url: "https://runbooks.whatsapp-enhancement.com/service-degradation"
+
+  # Security and Access Control Alerts
+  - name: security_alerts
+    rules:
+    - alert: HighAuthFailures
+      expr: sum(rate(authentication_failures_total[5m])) > 100
+      for: 5m
+      labels:
+        severity: critical
+        category: security
+      annotations:
+        summary: "High authentication failure rate"
+        description: "Unusual number of authentication failures detected"
+        runbook_url: "https://runbooks.whatsapp-enhancement.com/auth-failures"
+
+    - alert: RateLimitExceeded
+      expr: sum(rate(rate_limit_exceeded_total[5m])) by (service) > 50
+      for: 5m
+      labels:
+        severity: warning
+        category: security
+      annotations:
+        summary: "Rate limit exceeded for {{ $labels.service }}"
+        description: "Service is experiencing high rate limit violations"
+        runbook_url: "https://runbooks.whatsapp-enhancement.com/rate-limits"
+
+    - alert: SuspiciousActivity
+      expr: sum(rate(security_incident_total{severity="high"}[5m])) > 10
+      for: 5m
+      labels:
+        severity: critical
+        category: security
+      annotations:
+        summary: "Suspicious activity detected"
+        description: "High number of security incidents detected"
+        runbook_url: "https://runbooks.whatsapp-enhancement.com/suspicious-activity"
+
+  # Infrastructure Capacity Alerts
+  - name: capacity_alerts
+    rules:
+    - alert: LoadBalancerCapacity
+      expr: sum(haproxy_server_current_sessions) > 90000
+      for: 5m
+      labels:
+        severity: warning
+        category: capacity
+      annotations:
+        summary: "Load balancer nearing capacity"
+        description: "Concurrent connections approaching 100K limit"
+        runbook_url: "https://runbooks.whatsapp-enhancement.com/lb-capacity"
+
+    - alert: ApplicationServerOverload
+      expr: rate(http_requests_total[1m]) > 900
+      for: 5m
+      labels:
+        severity: warning
+        category: capacity
+      annotations:
+        summary: "Application server nearing capacity"
+        description: "Request rate approaching 1000 req/sec limit"
+        runbook_url: "https://runbooks.whatsapp-enhancement.com/app-capacity"
+
+    - alert: DatabaseTransactionLimit
+      expr: rate(postgresql_transactions_total[1m]) > 9000
+      for: 5m
+      labels:
+        severity: warning
+        category: capacity
+      annotations:
+        summary: "Database nearing transaction limit"
+        description: "Transaction rate approaching 10K/sec limit"
+        runbook_url: "https://runbooks.whatsapp-enhancement.com/db-capacity"
