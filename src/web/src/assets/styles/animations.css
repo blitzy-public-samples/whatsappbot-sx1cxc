@@ -1,0 +1,186 @@
+/**
+ * WhatsApp Web Enhancement Application - Animation System
+ * Version: 1.0.0
+ * 
+ * Implements Material Design motion principles with consistent timing and easing.
+ * All animations are hardware-accelerated and support reduced motion preferences.
+ * Duration: 200-300ms
+ * Easing: cubic-bezier(0.4, 0, 0.2, 1)
+ */
+
+/* Import animation timing variables */
+@import './variables.css';
+
+/* Base Animation Classes */
+.animation-wrapper {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.base-transition {
+  transition: transform var(--transition-duration) var(--transition-timing),
+              opacity var(--transition-duration) var(--transition-timing);
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+/* Fade Animation Classes */
+.fade-enter {
+  opacity: 0;
+  will-change: opacity;
+}
+
+.fade-enter-active {
+  opacity: 1;
+  transition: opacity var(--transition-duration) var(--transition-timing);
+}
+
+.fade-exit {
+  opacity: 1;
+  will-change: opacity;
+}
+
+.fade-exit-active {
+  opacity: 0;
+  transition: opacity var(--transition-duration) var(--transition-timing);
+}
+
+/* Slide Animation Classes */
+.slide-up-enter {
+  transform: translate3d(0, 100%, 0);
+  will-change: transform;
+}
+
+.slide-up-enter-active {
+  transform: translate3d(0, 0, 0);
+  transition: transform var(--transition-duration) var(--transition-timing);
+}
+
+.slide-down-exit {
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+.slide-down-exit-active {
+  transform: translate3d(0, 100%, 0);
+  transition: transform var(--transition-duration) var(--transition-timing);
+}
+
+/* RTL Support for Slide Animations */
+[dir="rtl"] .slide-up-enter {
+  transform: translate3d(0, 100%, 0) scaleX(-1);
+}
+
+[dir="rtl"] .slide-up-enter-active {
+  transform: translate3d(0, 0, 0) scaleX(-1);
+}
+
+/* Spin Animation */
+.spin {
+  animation: spin var(--transition-duration-long) linear infinite;
+}
+
+/* Keyframe Definitions */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    will-change: opacity;
+  }
+  to {
+    opacity: 1;
+    will-change: opacity;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+    will-change: opacity;
+  }
+  to {
+    opacity: 0;
+    will-change: opacity;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+    will-change: transform;
+  }
+  to {
+    transform: rotate(360deg);
+    will-change: transform;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translate3d(0, 100%, 0);
+    will-change: transform;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+  }
+}
+
+@keyframes slide-down {
+  from {
+    transform: translate3d(0, 0, 0);
+    will-change: transform;
+  }
+  to {
+    transform: translate3d(0, 100%, 0);
+    will-change: transform;
+  }
+}
+
+/* Accessibility - Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .animation-wrapper {
+    perspective: none;
+    transform-style: flat;
+  }
+  
+  .base-transition {
+    transition: opacity var(--transition-duration) var(--transition-timing);
+    transform: none;
+  }
+  
+  .spin {
+    animation: none;
+  }
+  
+  /* Maintain opacity transitions for accessibility */
+  .fade-enter-active,
+  .fade-exit-active {
+    transition: opacity 0.01ms var(--transition-timing);
+  }
+  
+  /* Disable transform transitions */
+  .slide-up-enter,
+  .slide-up-enter-active,
+  .slide-down-exit,
+  .slide-down-exit-active {
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Performance Optimization for Mobile Devices */
+@media (max-width: 600px) {
+  .animation-wrapper {
+    /* Reduce memory usage on mobile devices */
+    transform-style: flat;
+  }
+}
