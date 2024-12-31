@@ -1,0 +1,184 @@
+{
+  "messages": [
+    {
+      "id": "test-msg-001",
+      "organizationId": "test-org-123",
+      "recipientPhone": "+1234567890",
+      "content": {
+        "text": "Hello {first_name}, welcome to our service! Please find your *account details* below.",
+        "variables": {
+          "first_name": "John"
+        },
+        "formatting": {
+          "bold": [
+            {
+              "start": 45,
+              "length": 15
+            }
+          ]
+        }
+      },
+      "status": "pending",
+      "metadata": {
+        "priority": "high",
+        "category": "onboarding",
+        "tags": ["welcome", "new-user"]
+      },
+      "createdAt": "2023-10-01T00:00:00Z",
+      "updatedAt": "2023-10-01T00:00:00Z"
+    },
+    {
+      "id": "test-msg-002",
+      "organizationId": "test-org-123",
+      "recipientPhone": "+1987654321",
+      "content": {
+        "text": "Your order #{order_id} has been shipped! Track it here: {tracking_url}",
+        "variables": {
+          "order_id": "ORD-123",
+          "tracking_url": "https://track.example.com/ORD-123"
+        },
+        "formatting": {
+          "links": [
+            {
+              "start": 51,
+              "length": 24,
+              "url": "https://track.example.com/ORD-123"
+            }
+          ]
+        }
+      },
+      "status": "sent",
+      "sentAt": "2023-10-01T00:05:00Z",
+      "metadata": {
+        "priority": "normal",
+        "category": "order-updates",
+        "tags": ["shipping", "order-status"]
+      },
+      "createdAt": "2023-10-01T00:00:00Z",
+      "updatedAt": "2023-10-01T00:05:00Z"
+    },
+    {
+      "id": "test-msg-003",
+      "organizationId": "test-org-123",
+      "recipientPhone": "+1122334455",
+      "content": {
+        "text": "Support ticket #{ticket_id} has been resolved. Rate your experience: {feedback_url}",
+        "variables": {
+          "ticket_id": "TKT-789",
+          "feedback_url": "https://feedback.example.com/TKT-789"
+        },
+        "formatting": {
+          "links": [
+            {
+              "start": 63,
+              "length": 26,
+              "url": "https://feedback.example.com/TKT-789"
+            }
+          ]
+        }
+      },
+      "status": "delivered",
+      "sentAt": "2023-10-01T00:10:00Z",
+      "deliveredAt": "2023-10-01T00:10:05Z",
+      "metadata": {
+        "priority": "normal",
+        "category": "support",
+        "tags": ["support", "feedback"]
+      },
+      "createdAt": "2023-10-01T00:00:00Z",
+      "updatedAt": "2023-10-01T00:10:05Z"
+    },
+    {
+      "id": "test-msg-004",
+      "organizationId": "test-org-123",
+      "recipientPhone": "+5544332211",
+      "content": {
+        "text": "Payment of {amount} received for invoice #{invoice_id}. Thank you for your business!",
+        "variables": {
+          "amount": "$299.99",
+          "invoice_id": "INV-456"
+        },
+        "formatting": {
+          "bold": [
+            {
+              "start": 11,
+              "length": 7
+            }
+          ]
+        }
+      },
+      "status": "failed",
+      "failedAt": "2023-10-01T00:15:00Z",
+      "errorDetails": "Invalid phone number format",
+      "metadata": {
+        "priority": "high",
+        "category": "billing",
+        "tags": ["payment", "invoice"]
+      },
+      "createdAt": "2023-10-01T00:00:00Z",
+      "updatedAt": "2023-10-01T00:15:00Z"
+    },
+    {
+      "id": "test-msg-005",
+      "organizationId": "test-org-123",
+      "recipientPhone": "+9988776655",
+      "content": {
+        "text": "🎉 Special offer! Get {discount}% off on your next purchase. Valid until {expiry_date}.",
+        "variables": {
+          "discount": "25",
+          "expiry_date": "2023-12-31"
+        },
+        "formatting": {
+          "bold": [
+            {
+              "start": 19,
+              "length": 2
+            }
+          ]
+        }
+      },
+      "status": "scheduled",
+      "scheduledAt": "2023-10-15T09:00:00Z",
+      "metadata": {
+        "priority": "normal",
+        "category": "marketing",
+        "tags": ["promotion", "discount"]
+      },
+      "createdAt": "2023-10-01T00:00:00Z",
+      "updatedAt": "2023-10-01T00:00:00Z"
+    }
+  ],
+  "messageMetrics": {
+    "deliveryStats": {
+      "total": 5,
+      "pending": 1,
+      "sent": 1,
+      "delivered": 1,
+      "failed": 1,
+      "scheduled": 1
+    },
+    "categoryDistribution": {
+      "onboarding": 1,
+      "order-updates": 1,
+      "support": 1,
+      "billing": 1,
+      "marketing": 1
+    },
+    "priorityDistribution": {
+      "high": 2,
+      "normal": 3
+    },
+    "performanceMetrics": {
+      "averageDeliveryTime": 5000,
+      "deliverySuccessRate": 0.75,
+      "failureRate": 0.25
+    },
+    "templateUsage": {
+      "welcome": 1,
+      "order-status": 1,
+      "support-feedback": 1,
+      "payment-confirmation": 1,
+      "promotional": 1
+    }
+  }
+}
