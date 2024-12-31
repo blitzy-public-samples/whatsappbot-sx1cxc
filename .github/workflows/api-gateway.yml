@@ -1,0 +1,191 @@
+name: API Gateway CI/CD
+
+# Trigger on push to main and PRs, but only when api-gateway files change
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/backend/api-gateway/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/backend/api-gateway/**'
+
+# Define permissions needed for the workflow
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+  deployments: write
+  security-events: write
+
+# Environment variables
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REPOSITORY: api-gateway
+  NODE_ENV: production
+  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+  NODE_VERSION: '20.x'
+  WORKING_DIRECTORY: src/backend/api-gateway
+
+jobs:
+  test:
+    name: Test and Security Scan
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ${{ env.WORKING_DIRECTORY }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+        continue-on-error: false
+
+      - name: Run security audit
+        run: npm run security-audit
+        continue-on-error: false
+
+      - name: Run Snyk Security Scan
+        uses: snyk/actions/node@v3
+        with:
+          args: --severity-threshold=high
+        env:
+          SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
+
+      - name: Run tests with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ${{ env.WORKING_DIRECTORY }}/coverage
+          flags: api-gateway
+          fail_ci_if_error: true
+
+  build-and-push:
+    name: Build and Push Image
+    needs: test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+        id: login-ecr
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Generate Docker metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
+          tags: |
+            type=sha,prefix=
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ${{ env.WORKING_DIRECTORY }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64,linux/arm64
+
+      - name: Scan Docker image
+        uses: snyk/actions/docker@v3
+        with:
+          image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+          args: --file=${{ env.WORKING_DIRECTORY }}/Dockerfile
+        env:
+          SNYK_TOKEN: ${{ env.SNYK_TOKEN }}
+
+  deploy:
+    name: Deploy to Production
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency: production_deployment
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Configure kubectl
+        uses: aws-eks/eks-credentials@v1
+        with:
+          cluster-name: ${{ secrets.EKS_CLUSTER_NAME }}
+          region: ${{ env.AWS_REGION }}
+
+      - name: Update deployment image
+        run: |
+          kubectl set image deployment/api-gateway \
+            api-gateway=${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} \
+            -n production
+
+      - name: Wait for deployment rollout
+        run: |
+          kubectl rollout status deployment/api-gateway -n production --timeout=300s
+
+      - name: Verify deployment health
+        run: |
+          HEALTH_CHECK_URL=$(kubectl get svc api-gateway -n production -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')/health
+          for i in {1..30}; do
+            response=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_CHECK_URL)
+            if [ $response -eq 200 ]; then
+              echo "Health check passed"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Health check failed"
+          exit 1
+
+      - name: Update deployment status
+        if: always()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const status = '${{ job.status }}' === 'success' ? 'success' : 'failure'
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.name,
+              deployment_id: context.payload.deployment.id,
+              state: status,
+              environment: 'production'
+            })
