@@ -1,0 +1,26 @@
+# Kubernetes Namespace definition for WhatsApp Web Enhancement Application
+# Version: v1
+# Purpose: Provides logical isolation and resource management for application components
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: whatsapp-web-enhancement
+  labels:
+    # Core identification labels
+    name: whatsapp-web-enhancement
+    app: whatsapp-web-enhancement
+    # Monitoring integration label
+    monitoring: enabled
+    # Environment label for multi-environment support
+    environment: base
+    # Resource management label
+    managed-by: kustomize
+  annotations:
+    # Descriptive annotations
+    description: "WhatsApp Web Enhancement Application namespace for component isolation"
+    environment: "base"
+    # Operational annotations
+    owner: "platform-team"
+    security-level: "restricted"
+    backup-policy: "enabled"
