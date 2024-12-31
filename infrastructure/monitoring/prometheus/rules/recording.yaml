@@ -1,0 +1,125 @@
+# Prometheus Recording Rules Configuration v2.45.0
+# Purpose: Pre-compute and aggregate key metrics for WhatsApp Web Enhancement Application
+# Evaluation Interval: 30s
+# Scrape Interval: 15s
+
+groups:
+  # Node Resource Utilization Metrics
+  - name: node_resources
+    interval: 30s
+    rules:
+      - record: node_cpu_usage_percent
+        expr: |
+          100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+        labels:
+          metric_type: resource
+          component: cpu
+      
+      - record: node_memory_usage_bytes
+        expr: |
+          node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes
+        labels:
+          metric_type: resource
+          component: memory
+      
+      - record: node_disk_usage_percent
+        expr: |
+          100 * (1 - node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})
+        labels:
+          metric_type: resource
+          component: disk
+      
+      - record: node_network_throughput_bytes
+        expr: |
+          sum by (instance) (rate(node_network_receive_bytes_total[5m]) + rate(node_network_transmit_bytes_total[5m]))
+        labels:
+          metric_type: resource
+          component: network
+
+  # API Performance Metrics
+  - name: api_metrics
+    interval: 30s
+    rules:
+      - record: api_request_rate_total
+        expr: |
+          sum by (service, endpoint) (rate(http_requests_total[5m]))
+        labels:
+          metric_type: performance
+          component: api
+      
+      - record: api_error_rate_percent
+        expr: |
+          100 * sum by (service) (rate(http_requests_total{status=~"5.*"}[5m])) / sum by (service) (rate(http_requests_total[5m]))
+        labels:
+          metric_type: performance
+          component: api
+      
+      - record: api_latency_seconds_bucket
+        expr: |
+          histogram_quantile(0.95, sum by (le, service) (rate(http_request_duration_seconds_bucket[5m])))
+        labels:
+          metric_type: performance
+          component: api
+          percentile: "95"
+      
+      - record: api_saturation_ratio
+        expr: |
+          sum by (service) (rate(http_requests_in_flight[5m])) / sum by (service) (http_requests_max_in_flight)
+        labels:
+          metric_type: performance
+          component: api
+
+  # Message Processing Metrics
+  - name: message_metrics
+    interval: 30s
+    rules:
+      - record: message_delivery_success_rate
+        expr: |
+          sum(rate(whatsapp_messages_delivered_total[5m])) / sum(rate(whatsapp_messages_sent_total[5m])) * 100
+        labels:
+          metric_type: business
+          component: messaging
+      
+      - record: message_processing_duration_seconds
+        expr: |
+          histogram_quantile(0.95, sum by (le) (rate(message_processing_duration_seconds_bucket[5m])))
+        labels:
+          metric_type: business
+          component: messaging
+          percentile: "95"
+      
+      - record: message_queue_depth_total
+        expr: |
+          sum by (queue) (rabbitmq_queue_messages_ready + rabbitmq_queue_messages_unacknowledged)
+        labels:
+          metric_type: business
+          component: messaging
+      
+      - record: message_retry_rate_total
+        expr: |
+          rate(whatsapp_messages_retry_total[5m])
+        labels:
+          metric_type: business
+          component: messaging
+
+  # System-wide Aggregated Metrics
+  - name: system_aggregates
+    interval: 30s
+    rules:
+      - record: system_service_health_score
+        expr: |
+          (sum(up) / count(up)) * 100
+        labels:
+          metric_type: health
+          component: system
+      
+      - record: system_resource_saturation
+        expr: |
+          max(
+            max(node_cpu_usage_percent),
+            max(node_memory_usage_bytes / node_memory_MemTotal_bytes * 100),
+            max(node_disk_usage_percent)
+          )
+        labels:
+          metric_type: health
+          component: system
