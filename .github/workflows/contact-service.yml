@@ -130,7 +130,7 @@ jobs:
           registry: ${{ env.DOCKER_REGISTRY }}
 
       - name: Build and push container image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./src/backend/contact-service
           file: ./src/backend/contact-service/Dockerfile
