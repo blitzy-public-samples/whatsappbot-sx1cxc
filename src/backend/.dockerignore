@@ -1,0 +1,134 @@
+**/.git
+**/.gitignore
+**/.gitattributes
+
+# Environment and configuration files
+**/.env*
+**/.editorconfig
+**/*.config.js
+**/*.config.ts
+
+# Node.js
+**/node_modules
+**/npm-debug.log
+**/.npm
+**/.npmrc
+**/yarn-debug.log*
+**/yarn-error.log*
+**/.yarn
+**/.pnp.*
+
+# Python
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.Python
+**/venv
+**/.venv
+**/pip-log.txt
+**/.pytest_cache
+**/.coverage
+**/htmlcov
+
+# Go
+**/go.work
+**/*.exe
+**/*.test
+**/*.prof
+**/vendor
+
+# Build outputs
+**/dist
+**/build
+**/.next
+**/.nuxt
+**/.output
+**/coverage
+
+# IDE and editor files
+**/.idea
+**/.vscode
+**/.vs
+**/*.swp
+**/*.swo
+**/*.swn
+**/*.bak
+
+# Logs and debugging
+**/*.log
+**/logs
+**/.debug
+**/debug.log
+
+# Docker and deployment
+**/Dockerfile*
+**/docker-compose*
+**/.docker
+**/.dockerignore
+**/kubernetes
+**/.helm
+
+# Documentation and non-essential files
+**/README.md
+**/CHANGELOG.md
+**/LICENSE
+**/*.md
+**/docs
+**/examples
+
+# Test files
+**/tests
+**/test
+**/__tests__
+**/*.spec.*
+**/*.test.*
+**/jest.config.*
+**/pytest.ini
+**/coverage.xml
+
+# Temporary files
+**/.tmp
+**/.temp
+**/tmp
+**/temp
+**/*.tmp
+**/*.temp
+
+# OS generated files
+**/.DS_Store
+**/.DS_Store?
+**/._*
+**/.Spotlight-V100
+**/.Trashes
+**/ehthumbs.db
+**/Thumbs.db
+
+# Development tools
+**/.eslintrc*
+**/.prettierrc*
+**/.stylelintrc*
+**/tslint.json
+**/.babelrc*
+**/jest.config.*
+**/nodemon.json
+**/.husky
+
+# Dependency lock files (should be regenerated in container)
+**/package-lock.json
+**/yarn.lock
+**/poetry.lock
+**/Pipfile.lock
+**/go.sum
+
+# Local development configurations
+**/local.settings.json
+**/appsettings.*.json
+**/.localstack
+**/.aws
+
+# Cache directories
+**/.cache
+**/.parcel-cache
+**/.rollup.cache
+**/.webpack
