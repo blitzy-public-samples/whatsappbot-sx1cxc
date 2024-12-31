@@ -1,0 +1,144 @@
+{
+  "contacts": [
+    {
+      "id": "c001",
+      "phoneNumber": "+14155552671",
+      "firstName": "John",
+      "lastName": "Smith",
+      "email": "john.smith@example.com",
+      "status": "active",
+      "groups": ["marketing", "newsletter"],
+      "tags": ["vip", "early-adopter"],
+      "preferredLanguage": "en-US",
+      "timezone": "America/Los_Angeles",
+      "consentStatus": "opted_in",
+      "customFields": {
+        "company": "Acme Corp",
+        "industry": "Technology",
+        "leadSource": "Website"
+      },
+      "metadata": {
+        "lastCampaignId": "camp_001",
+        "customerSegment": "enterprise",
+        "acquisitionChannel": "organic"
+      },
+      "organization_id": "org_001",
+      "created_at": "2023-01-15T08:00:00Z",
+      "updated_at": "2023-10-20T15:30:00Z",
+      "last_contacted_at": "2023-10-19T14:22:00Z",
+      "last_message_id": "msg_789"
+    },
+    {
+      "id": "c002",
+      "phoneNumber": "+447700900123",
+      "firstName": "Emma",
+      "lastName": "Wilson",
+      "email": "emma.wilson@example.co.uk",
+      "status": "active",
+      "groups": ["support", "beta-testers"],
+      "tags": ["premium", "technical"],
+      "preferredLanguage": "en-GB",
+      "timezone": "Europe/London",
+      "consentStatus": "opted_in",
+      "customFields": {
+        "company": "Tech Solutions Ltd",
+        "supportTier": "premium",
+        "contractType": "annual"
+      },
+      "metadata": {
+        "lastCampaignId": "camp_002",
+        "customerSegment": "mid-market",
+        "acquisitionChannel": "referral"
+      },
+      "organization_id": "org_001",
+      "created_at": "2023-02-20T10:15:00Z",
+      "updated_at": "2023-10-19T09:45:00Z",
+      "last_contacted_at": "2023-10-18T16:30:00Z",
+      "last_message_id": "msg_456"
+    },
+    {
+      "id": "c003",
+      "phoneNumber": "+819012345678",
+      "firstName": "Takashi",
+      "lastName": "Yamamoto",
+      "email": "t.yamamoto@example.jp",
+      "status": "active",
+      "groups": ["asia-pacific", "enterprise"],
+      "tags": ["enterprise", "international"],
+      "preferredLanguage": "ja-JP",
+      "timezone": "Asia/Tokyo",
+      "consentStatus": "opted_in",
+      "customFields": {
+        "company": "Global Trading Co",
+        "industry": "Finance",
+        "accountType": "enterprise"
+      },
+      "metadata": {
+        "lastCampaignId": "camp_003",
+        "customerSegment": "enterprise",
+        "acquisitionChannel": "partnership"
+      },
+      "organization_id": "org_001",
+      "created_at": "2023-03-10T02:30:00Z",
+      "updated_at": "2023-10-20T05:15:00Z",
+      "last_contacted_at": "2023-10-20T04:45:00Z",
+      "last_message_id": "msg_123"
+    },
+    {
+      "id": "c004",
+      "phoneNumber": "+33123456789",
+      "firstName": "Sophie",
+      "lastName": "Dubois",
+      "email": "sophie.dubois@example.fr",
+      "status": "inactive",
+      "groups": ["europe", "dormant"],
+      "tags": ["reactivation-needed"],
+      "preferredLanguage": "fr-FR",
+      "timezone": "Europe/Paris",
+      "consentStatus": "opted_out",
+      "customFields": {
+        "company": "Mode Boutique",
+        "industry": "Retail",
+        "inactiveReason": "no_response"
+      },
+      "metadata": {
+        "lastCampaignId": "camp_004",
+        "customerSegment": "small-business",
+        "acquisitionChannel": "advertising"
+      },
+      "organization_id": "org_001",
+      "created_at": "2023-01-05T14:20:00Z",
+      "updated_at": "2023-09-15T11:30:00Z",
+      "last_contacted_at": "2023-09-15T11:30:00Z",
+      "last_message_id": "msg_321"
+    },
+    {
+      "id": "c005",
+      "phoneNumber": "+5511987654321",
+      "firstName": "Carlos",
+      "lastName": "Silva",
+      "email": "carlos.silva@example.br",
+      "status": "pending",
+      "groups": ["south-america", "new-leads"],
+      "tags": ["prospect", "follow-up"],
+      "preferredLanguage": "pt-BR",
+      "timezone": "America/Sao_Paulo",
+      "consentStatus": "pending",
+      "customFields": {
+        "company": "Brasil Tech",
+        "industry": "Software",
+        "leadScore": 85
+      },
+      "metadata": {
+        "lastCampaignId": null,
+        "customerSegment": "prospect",
+        "acquisitionChannel": "trade_show"
+      },
+      "organization_id": "org_001",
+      "created_at": "2023-10-18T16:45:00Z",
+      "updated_at": "2023-10-18T16:45:00Z",
+      "last_contacted_at": null,
+      "last_message_id": null
+    }
+  ]
+}
