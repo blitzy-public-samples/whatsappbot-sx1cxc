@@ -1,0 +1,78 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs
+dist
+build
+coverage
+
+# Version control
+.git
+.gitignore
+
+# Logs
+*.log
+*debug.log*
+*error.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment and secrets
+.env*
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Development configs
+.eslintrc*
+.prettier*
+.editorconfig
+tsconfig*.json
+jest.config.*
+
+# Test files
+**/*.test.*
+**/*.spec.*
+**/__tests__
+**/__mocks__
+**/test
+**/tests
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+.DS_Store
+
+# Documentation
+*.md
+docs
+README.md
+CHANGELOG.md
+LICENSE
+
+# Docker files
+.dockerignore
+Dockerfile*
+
+# Temporary files
+*.tmp
+*.temp
+.cache
+.npm
+
+# Development tools
+.husky
+.lint-staged
+.storybook
+.next
+
+# Miscellaneous
+.git*
+*.tgz
+*.tsbuildinfo
+stats.json
