@@ -1,0 +1,70 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2021",
+    "module": "commonjs",
+    "lib": [
+      "ES2021",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["../src/*"],
+      "@test/*": ["./src/test/*"],
+      "@backend/*": ["../backend/*"],
+      "@web/*": ["../web/*"],
+      "@utils/*": ["./utils/*"],
+      "@mocks/*": ["./mocks/*"],
+      "@fixtures/*": ["./fixtures/*"],
+      "@integration/*": ["./integration/*"],
+      "@e2e/*": ["./e2e/*"]
+    },
+    "types": [
+      "jest",
+      "node"
+    ],
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "pretty": true,
+    "sourceMap": true
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.js",
+    "**/*.jsx",
+    "**/*.json",
+    "jest.config.ts",
+    "setup/*.ts",
+    "mocks/**/*",
+    "fixtures/**/*",
+    "integration/**/*",
+    "e2e/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "coverage",
+    ".nyc_output",
+    "temp",
+    "**/*.spec.js.snap"
+  ]
+}
