@@ -1,0 +1,84 @@
+[tool.poetry]
+name = "contact-service"
+version = "1.0.0"
+description = "WhatsApp Web Enhancement Contact Management Service"
+authors = ["Development Team"]
+readme = "README.md"
+packages = [{include = "contact_service"}]
+
+# Python version requirement
+python = "^3.11"
+
+[tool.poetry.dependencies]
+# Core Framework - v0.104.0 for latest features and security updates
+fastapi = "^0.104.0"
+uvicorn = "^0.24.0"
+pydantic = "^2.0.0"
+
+# Database - Latest stable versions for optimal performance
+sqlalchemy = "^2.0.0"
+psycopg2-binary = "^2.9.9"
+alembic = "^1.12.0"
+
+# Caching and Session Management
+redis = "^5.0.0"
+
+# Monitoring and Metrics
+prometheus-fastapi-instrumentator = "^6.1.0"
+
+# Security and Authentication
+python-jose = "^3.3.0"
+passlib = "^1.7.4"
+python-multipart = "^0.0.6"
+
+# HTTP Client for External Communications
+aiohttp = "^3.8.6"
+
+# Data Processing
+pandas = "^2.1.0"
+openpyxl = "^3.1.2"
+
+[tool.poetry.group.dev.dependencies]
+# Testing
+pytest = "^7.4.0"
+pytest-asyncio = "^0.21.0"
+pytest-cov = "^4.1.0"
+
+# Code Quality
+black = "^23.9.0"
+isort = "^5.12.0"
+flake8 = "^6.1.0"
+mypy = "^1.5.0"
+
+[build-system]
+requires = ["poetry-core>=1.7.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+line_length = 88
+
+[tool.mypy]
+python_version = "3.11"
+disallow_untyped_defs = true
+disallow_any_unimported = true
+no_implicit_optional = true
+check_untyped_defs = true
+warn_return_any = true
+warn_unused_ignores = true
+show_error_codes = true
+
+[tool.pytest.ini_options]
+minversion = "7.4.0"
+addopts = "-ra -q --cov=contact_service --cov-report=term-missing"
+testpaths = ["tests"]
+asyncio_mode = "auto"
