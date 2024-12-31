@@ -89,7 +89,7 @@ jobs:
           buildkitd-flags: --debug
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: src/backend/message-service
           file: src/backend/message-service/Dockerfile
