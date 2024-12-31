@@ -1,0 +1,127 @@
+# Prometheus Configuration v2.45.0
+# Managed by prometheus-operator v0.68.0
+
+global:
+  # Global settings for all scrape targets
+  scrape_interval: 15s     # Default scrape interval
+  evaluation_interval: 30s # Default alert evaluation interval
+  scrape_timeout: 10s     # Default scrape timeout
+  external_labels:
+    environment: production
+    cluster: whatsapp-web-enhancement
+
+# Rule files containing recording and alerting rules
+rule_files:
+  - "rules/alerts.yaml"    # System, application, and security alerts
+  - "rules/recording.yaml" # Performance optimization rules
+
+# Scrape configurations
+scrape_configs:
+  # Kubernetes Service Monitor scraping
+  - job_name: 'kubernetes-service-monitors'
+    honor_labels: true
+    kubernetes_sd_configs:
+      - role: endpoints
+        namespaces:
+          names:
+            - monitoring
+            - whatsapp-web
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_service_name]
+        action: replace
+        target_label: kubernetes_service_name
+
+  # Direct pod scraping configuration
+  - job_name: 'kubernetes-pods'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_container_port_number]
+        action: keep
+        regex: \d+
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: replace
+        target_label: app
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+
+  # Service endpoint scraping
+  - job_name: 'kubernetes-services'
+    metrics_path: /metrics
+    kubernetes_sd_configs:
+      - role: service
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_service_name]
+        target_label: service
+
+# Alerting configuration
+alerting:
+  alert_relabel_configs:
+    - source_labels: [severity]
+      regex: ^(critical|warning|info)$
+      action: keep
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - 'alertmanager:9093'
+      scheme: http
+      timeout: 10s
+      api_version: v2
+
+# Storage configuration
+storage:
+  tsdb:
+    retention.time: 15d    # Data retention period
+    retention.size: 500GB  # Maximum storage size
+    wal:
+      retention.time: 12h  # WAL retention time
+
+# Security configuration
+tls_config:
+  cert_file: /etc/prometheus/certs/prometheus.crt
+  key_file: /etc/prometheus/certs/prometheus.key
+  min_version: TLS12
+
+# Remote write configuration for long-term storage
+remote_write:
+  - url: "http://thanos-receive:19291/api/v1/receive"
+    queue_config:
+      capacity: 500000
+      max_shards: 200
+      max_samples_per_send: 100
+
+# Remote read configuration for historical data
+remote_read:
+  - url: "http://thanos-query:10902/api/v1/read"
+    read_recent: true
+
+# Resource limits
+query:
+  max_samples: 50000000
+  timeout: 2m
+  max_concurrency: 20
+
+# Web interface configuration
+web:
+  external_url: https://prometheus.whatsapp-web-enhancement.com
+  route_prefix: /
+  cors:
+    cors_origins: ['*']
+  max_connections: 512
