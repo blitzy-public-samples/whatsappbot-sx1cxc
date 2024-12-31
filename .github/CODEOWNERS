@@ -1,0 +1,41 @@
+# These owners will be the default owners for everything in the repo
+*       @project-leads
+
+# API Gateway service requires both API Gateway team and Security team review
+src/backend/api-gateway/*    @api-gateway-team @security-team
+
+# Message service ownership
+src/backend/message-service/*    @message-service-team
+
+# Contact service ownership
+src/backend/contact-service/*    @contact-service-team
+
+# Template service ownership
+src/backend/template-service/*    @template-service-team
+
+# Analytics service ownership
+src/backend/analytics-service/*    @analytics-service-team
+
+# Frontend application ownership
+src/web/*    @frontend-team
+
+# Infrastructure code requires both DevOps and Security team review
+infrastructure/*    @devops-team @security-team
+
+# Security configurations are owned by the Security team
+config/security/*    @security-team
+
+# Test suite ownership
+src/test/*    @qa-team
+
+# CI/CD workflows require both DevOps and Security team review
+.github/workflows/*    @devops-team @security-team
+
+# Database files require both Database team and Security team review
+*.sql    @database-team @security-team
+
+# Database configurations require both Database team and Security team review
+src/backend/db/*    @database-team @security-team
+
+# Technical documentation is owned by Technical Writers and Project Leads
+docs/*    @technical-writers @project-leads
