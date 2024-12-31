@@ -1,0 +1,230 @@
+/**
+ * WhatsApp Web Enhancement Application - Global Styles
+ * Version: 1.0.0
+ * 
+ * Core styling rules implementing Material Design principles with:
+ * - Enhanced accessibility (WCAG 2.1 AA compliant)
+ * - Performance optimizations
+ * - Mobile-first responsive design
+ * - RTL support
+ */
+
+/* Import external normalize.css v8.0.1 for consistent cross-browser baseline */
+@import 'normalize.css';
+
+/* Import internal design system dependencies */
+@import './variables.css';
+@import './animations.css';
+@import '../fonts/roboto/index.css';
+
+/* Base Reset & Box Model */
+html {
+  box-sizing: border-box;
+  font-size: 16px; /* Base font size for rem calculations */
+  font-family: var(--font-family-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+/* Performance optimizations */
+.optimize-gpu {
+  will-change: transform;
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+}
+
+/* Body Defaults */
+body {
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background-color: var(--color-background);
+  min-height: 100vh;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Container System */
+.container {
+  max-width: calc(var(--container-max-width) + 2 * var(--container-padding));
+  margin: 0 auto;
+  padding: 0 var(--container-padding);
+  width: 100%;
+}
+
+/* Responsive Container Breakpoints */
+@media (max-width: var(--breakpoint-sm)) {
+  .container {
+    padding: 0 var(--spacing-sm);
+  }
+}
+
+@media (min-width: var(--breakpoint-lg)) {
+  .container {
+    padding: 0 var(--spacing-xl);
+  }
+}
+
+/* Typography Enhancements */
+h1, h2, h3, h4, h5, h6 {
+  margin-bottom: var(--spacing-md);
+  line-height: 1.2;
+}
+
+p {
+  margin-bottom: var(--spacing-md);
+}
+
+/* Links */
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-duration) var(--transition-timing);
+}
+
+a:hover {
+  color: var(--color-primary-dark);
+  text-decoration: underline;
+}
+
+/* Focus States - Enhanced Accessibility */
+:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Screen Reader Only - Accessibility */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  border: 0;
+  white-space: nowrap;
+}
+
+/* List Resets */
+ul, ol {
+  list-style: none;
+}
+
+/* Form Elements */
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* Button Reset */
+button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Image Optimization */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* RTL Support */
+[dir="rtl"] {
+  text-align: right;
+}
+
+/* Print Styles */
+@media print {
+  body {
+    background: white;
+  }
+
+  .container {
+    max-width: none;
+    padding: 0;
+  }
+
+  a {
+    text-decoration: underline;
+  }
+
+  /* Hide non-essential elements */
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  :root {
+    --color-primary: #0000EE;
+    --color-text-primary: #000000;
+    --color-background: #FFFFFF;
+  }
+
+  a {
+    text-decoration: underline;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark Mode - Future Implementation */
+@media (prefers-color-scheme: dark) {
+  /* Dark theme styles will be implemented here */
+}
+
+/* Utility Classes */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.margin-bottom-sm { margin-bottom: var(--spacing-sm); }
+.margin-bottom-md { margin-bottom: var(--spacing-md); }
+.margin-bottom-lg { margin-bottom: var(--spacing-lg); }
+
+.padding-sm { padding: var(--spacing-sm); }
+.padding-md { padding: var(--spacing-md); }
+.padding-lg { padding: var(--spacing-lg); }
+
+/* Export utility classes */
+:export {
+  container: container;
+  visually-hidden: visually-hidden;
+}
