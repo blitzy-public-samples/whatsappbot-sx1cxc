@@ -1,0 +1,104 @@
+WhatsApp Web Enhancement Application License
+Version 1.0, [Current Year]
+
+TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+1. DEFINITIONS
+"License" shall mean the terms and conditions for use, reproduction, and distribution as defined in this document.
+
+"Licensor" shall mean the copyright owner or entity authorized by the copyright owner that is granting the License.
+
+"Legal Entity" shall mean the union of the acting entity and all other entities that control, are controlled by, or are under common control with that entity.
+
+"Software" shall mean the WhatsApp Web Enhancement Application, including all associated components, documentation, and resources.
+
+"You" (or "Your") shall mean an individual or Legal Entity exercising permissions granted by this License.
+
+2. GRANT OF LICENSE
+Subject to the terms and conditions of this License, the Licensor hereby grants You a worldwide, non-exclusive, non-transferable license to use the Software, subject to the following conditions:
+
+2.1. Enterprise Usage
+- You may deploy the Software within Your organization for business purposes
+- You may integrate the Software with existing enterprise systems (CRM, calendar, storage)
+- You must maintain compliance with WhatsApp's Terms of Service
+- You must obtain necessary WhatsApp Business API credentials independently
+
+2.2. Modifications
+- You may modify the Software for Your internal use
+- All modifications must be documented and tracked
+- Modified versions must maintain compliance with WhatsApp's Terms of Service
+- You may not remove or alter any copyright notices or attributions
+
+3. RESTRICTIONS
+You may not:
+- Redistribute the Software without explicit written permission
+- Use the Software in violation of WhatsApp's Terms of Service
+- Remove or bypass any security measures
+- Use the Software for non-business purposes
+- Transfer Your rights under this License to any third party
+
+4. API AND INTEGRATION COMPLIANCE
+4.1. WhatsApp API Usage
+- Must comply with WhatsApp Business API terms and conditions
+- Must maintain valid API credentials
+- Must adhere to rate limits and usage guidelines
+- Must implement required security measures
+
+4.2. Third-Party Integrations
+- Must comply with respective third-party service terms
+- Must obtain necessary permissions and credentials
+- Must maintain secure integration practices
+
+5. DATA PROTECTION AND PRIVACY
+You must:
+- Comply with GDPR, CCPA, and applicable privacy regulations
+- Implement appropriate data protection measures
+- Obtain necessary user consents
+- Maintain records of data processing activities
+- Report data breaches as required by law
+
+6. WARRANTY DISCLAIMER
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+7. LIMITATION OF LIABILITY
+IN NO EVENT SHALL THE LICENSOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THE SOFTWARE.
+
+8. INDEMNIFICATION
+You agree to indemnify and hold harmless the Licensor from and against any claims, damages, losses, liabilities, costs, and expenses arising from Your use of the Software or violation of this License.
+
+9. COMPLIANCE AND ENFORCEMENT
+9.1. Violation Reporting
+- Violations must be reported to [compliance@organization.com]
+- Reports must include detailed description and evidence
+- Confidentiality of reports will be maintained
+
+9.2. Enforcement
+- License violations may result in immediate termination
+- Remediation steps must be completed as directed
+- Reinstatement requires written approval
+
+10. GOVERNING LAW AND JURISDICTION
+This License shall be governed by and construed in accordance with the laws of [Jurisdiction], without regard to its conflict of law provisions. Any legal proceedings shall be brought exclusively in the courts of [Venue].
+
+11. TERM AND TERMINATION
+- License remains effective until terminated
+- Automatic termination upon breach of any term
+- All rights revert upon termination
+- Sections 6, 7, 8, and 10 survive termination
+
+12. MISCELLANEOUS
+12.1. Language
+- English version is authoritative
+- Translations available in Spanish, French, and German
+- Translations must be certified
+
+12.2. Updates
+- License terms subject to quarterly review
+- Updates will be published with notice
+- Continued use constitutes acceptance of updates
+
+For licensing inquiries or permissions:
+[legal@organization.com]
+
+Copyright (c) [Year] [Organization Name]
+All rights reserved.
