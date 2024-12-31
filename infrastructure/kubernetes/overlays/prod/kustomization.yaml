@@ -1,0 +1,75 @@
+# Kustomize configuration for WhatsApp Web Enhancement Production Environment
+# Version: v1beta1
+# Purpose: Production-specific customizations with high availability and security settings
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Base configuration reference
+resources:
+- ../../base
+
+# Production namespace configuration
+namespace: whatsapp-web-enhancement-prod
+
+# Common labels for all resources
+commonLabels:
+  environment: production
+  managed-by: kustomize
+  app.kubernetes.io/part-of: whatsapp-web-enhancement
+  app.kubernetes.io/environment: production
+
+# Production-specific annotations
+commonAnnotations:
+  environment.type: production
+  deployment.environment: prod
+  monitoring.enabled: "true"
+  prometheus.io/scrape: "true"
+  prometheus.io/port: metrics
+  istio.io/rev: production-v1
+
+# High availability replica configuration
+replicas:
+- name: api-gateway
+  count: 5
+- name: message-service
+  count: 5
+- name: analytics-service
+  count: 3
+- name: contact-service
+  count: 3
+- name: template-service
+  count: 3
+
+# Production image configuration
+images:
+- name: api-gateway
+  newName: whatsapp-web-enhancement/api-gateway
+  newTag: prod-latest
+- name: message-service
+  newName: whatsapp-web-enhancement/message-service
+  newTag: prod-latest
+- name: analytics-service
+  newName: whatsapp-web-enhancement/analytics-service
+  newTag: prod-latest
+- name: contact-service
+  newName: whatsapp-web-enhancement/contact-service
+  newTag: prod-latest
+- name: template-service
+  newName: whatsapp-web-enhancement/template-service
+  newTag: prod-latest
+
+# Production-specific patches for high availability and security
+patchesStrategicMerge:
+# Increase resource limits for production workloads
+- patches/increase-memory-limits.yaml
+# Configure pod anti-affinity for high availability
+- patches/add-pod-antiaffinity.yaml
+# Update liveness and readiness probe settings
+- patches/update-probes.yaml
+# Configure Horizontal Pod Autoscaling
+- patches/configure-hpa.yaml
+# Set Pod Disruption Budget for availability
+- patches/set-pod-disruption-budget.yaml
+# Add Network Policies for security
+- patches/add-network-policies.yaml
