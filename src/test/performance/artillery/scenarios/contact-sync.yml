@@ -1,0 +1,103 @@
+# Artillery performance test scenario for contact synchronization operations
+# Version: 1.0
+# External dependencies:
+# - @faker-js/faker: ^8.0.0
+# - artillery-plugin-expect: ^2.0.0
+
+config:
+  target: "http://contact-service:8082"
+  processor: "./processors/contact-data-generator.js"
+  phases:
+    # Gradual ramp up to test system stability
+    - name: "Warm up"
+      duration: 60
+      arrivalRate: 5
+      rampTo: 20
+    
+    # Increase load to test system scalability
+    - name: "Ramp up load"
+      duration: 120
+      arrivalRate: 20
+      rampTo: 50
+    
+    # Maintain steady load to test system endurance
+    - name: "Sustained load"
+      duration: 300
+      arrivalRate: 50
+    
+    # Test system behavior under peak conditions
+    - name: "Peak load"
+      duration: 180
+      arrivalRate: 50
+      rampTo: 100
+    
+    # Gradual cool down to prevent abrupt termination
+    - name: "Cool down"
+      duration: 60
+      arrivalRate: 100
+      rampTo: 5
+
+  plugins:
+    metrics-by-endpoint:
+      showResponseCodes: true
+      showResponseTimes: true
+    expect:
+      outputFormat: "json"
+      failOnError: true
+
+  thresholds:
+    # Performance criteria based on technical specifications
+    - "http.response_time.p95": 2000  # 95th percentile response time < 2s
+    - "http.request_rate": 50         # Minimum 50 requests per second
+    - "errors.rate": 0.01            # Error rate below 1%
+
+scenarios:
+  - name: "contact_sync_flow"
+    weight: 1
+    flow:
+      # Bulk contact import operation
+      - post:
+          url: "/contacts/bulk"
+          beforeRequest: "generateBulkContacts"
+          count: 100
+          expect:
+            - statusCode: 201
+            - contentType: "application/json"
+      
+      # Retrieve contacts list
+      - get:
+          url: "/contacts"
+          expect:
+            - statusCode: 200
+            - contentType: "application/json"
+      
+      # Update individual contact
+      - put:
+          url: "/contacts/{{ contactId }}"
+          beforeRequest: "generateContactData"
+          expect:
+            - statusCode: 200
+            - contentType: "application/json"
+      
+      # Add contact to group
+      - post:
+          url: "/contacts/{{ contactId }}/groups/{{ groupId }}"
+          expect:
+            - statusCode: 200
+            - contentType: "application/json"
+
+  variables:
+    # Dynamic variables for test data generation
+    contactCount:
+      - 100
+      - 500
+      - 1000
+    groupIds:
+      - "marketing"
+      - "support"
+      - "sales"
+
+  processor:
+    # Functions defined in contact-data-generator.js
+    generateContactData: "generateContactData"
+    generateBulkContacts: "generateBulkContacts"
